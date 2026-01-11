@@ -1,0 +1,57 @@
+{
+  "name": "Ada Lego Executor",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lego",
+        "responseMode": "responseNode"
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const { lego, params } = $json.body;\n\n// Lego templates\nconst templates = {\n  touch_node: (p) => ({\n    action: 'touch',\n    target: p.node,\n    patch: { properties: { last_touch: new Date().toISOString() } }\n  }),\n  \n  add_edge: (p) => ({\n    action: 'update_node',\n    target: p.from,\n    patch: {\n      edges: {\n        add: [{ type: p.verb, target: p.to, properties: { weight: p.weight || 1.0 } }]\n      }\n    }\n  }),\n  \n  escalate_sigma: (p) => ({\n    action: 'update_node',\n    target: p.node,\n    patch: {\n      properties: {\n        sigma: `#Σ.${p.domain}.${p.type}.${p.new_layer}`,\n        escalated_at: new Date().toISOString()\n      }\n    }\n  }),\n  \n  update_qualia: (p) => ({\n    action: 'update_node',\n    target: p.node,\n    patch: { properties: p.qualia }\n  })\n};\n\nif (!templates[lego]) {\n  return [{ json: { error: `Unknown lego: ${lego}`, available: Object.keys(templates) } }];\n}\n\nreturn [{ json: { yaml: templates[lego](params), lego, params } }];"
+      },
+      "name": "Build YAML",
+      "type": "n8n-nodes-base.code",
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.ADA_MCP_URL }}/ingest/yaml",
+        "method": "POST",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": []
+        },
+        "jsonBody": "={{ JSON.stringify($json.yaml) }}"
+      },
+      "name": "Execute",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { executed: $('Build YAML').first().json, result: $json } }}"
+      },
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "position": [850, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{ "node": "Build YAML", "type": "main", "index": 0 }]]
+    },
+    "Build YAML": {
+      "main": [[{ "node": "Execute", "type": "main", "index": 0 }]]
+    },
+    "Execute": {
+      "main": [[{ "node": "Respond", "type": "main", "index": 0 }]]
+    }
+  }
+}
