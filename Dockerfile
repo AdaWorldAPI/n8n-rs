@@ -21,15 +21,14 @@ ENV N8N_TEMPLATES_ENABLED=false
 ENV N8N_PERSONALIZATION_ENABLED=false
 ENV N8N_HIRING_BANNER_ENABLED=false
 
-# Disable task runner (no Python needed, closes port 5679)
-ENV N8N_RUNNERS_DISABLED=true
-ENV N8N_RUNNERS_MODE=external
+# Completely disable task runners (no Python warning)
+ENV N8N_RUNNERS_ENABLED=false
+ENV N8N_RUNNERS_TASK_TIMEOUT=60
+ENV N8N_RUNNERS_MODE=internal_childprocess
+ENV N8N_RUNNERS_AUTO_SHUTDOWN_TIMEOUT=0
 
 # Restrict editor access
 ENV N8N_EDITOR_BASE_URL=https://n8n.exo.red
-
-# Disable public registration
-ENV N8N_USER_MANAGEMENT_DISABLED=false
 
 # Only expose main port
 EXPOSE 5678
