@@ -1,37 +1,79 @@
-FROM docker.n8n.io/n8nio/n8n:latest
+# ═══════════════════════════════════════════════════════════════════════════════
+# Ada N8N Orchestrator - Rust Build
+# ═══════════════════════════════════════════════════════════════════════════════
+# Multi-stage build for minimal production image
 
-USER root
+# ─────────────────────────────────────────────────────────────────────────────
+# Stage 1: Build
+# ─────────────────────────────────────────────────────────────────────────────
+FROM rust:1.75-slim-bookworm AS builder
 
-COPY workflows /home/node/workflows
-RUN chown -R node:node /home/node/workflows
+WORKDIR /app
 
-# Create persistent data dir
-RUN mkdir -p /home/node/.n8n && chown -R node:node /home/node/.n8n
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    pkg-config \
+    libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-USER node
+# Copy manifests first for layer caching
+COPY Cargo.toml Cargo.lock* ./
 
-# Railway port
+# Create dummy src to build dependencies
+RUN mkdir src && \
+    echo "fn main() {}" > src/main.rs && \
+    cargo build --release && \
+    rm -rf src
+
+# Copy actual source
+COPY src ./src
+
+# Build the real application
+RUN touch src/main.rs && cargo build --release
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Stage 2: Runtime
+# ─────────────────────────────────────────────────────────────────────────────
+FROM debian:bookworm-slim
+
+WORKDIR /app
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy binary from builder
+COPY --from=builder /app/target/release/ada-n8n /app/ada-n8n
+
+# Copy workflow definitions (for reference/config)
+COPY workflows /app/workflows
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Environment Configuration
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Server config (Railway port)
 ENV N8N_PORT=8080
 ENV N8N_HOST=0.0.0.0
 ENV N8N_PROTOCOL=https
 ENV GENERIC_TIMEZONE=Europe/Berlin
 
-# Security
-ENV N8N_DIAGNOSTICS_ENABLED=false
-ENV N8N_VERSION_NOTIFICATIONS_ENABLED=false
-ENV N8N_TEMPLATES_ENABLED=false
-ENV N8N_PERSONALIZATION_ENABLED=false
-ENV N8N_HIRING_BANNER_ENABLED=false
-ENV N8N_RUNNERS_ENABLED=false
+# Service endpoints (set in Railway)
+# ENV ADA_MCP_URL=https://mcp.exo.red
+# ENV ADA_POINT_URL=https://point.exo.red
+# ENV UPSTASH_REDIS_REST_URL=...
+# ENV UPSTASH_REDIS_REST_TOKEN=...
+# ENV ADA_XAI_KEY=...
 
-ENV N8N_EDITOR_BASE_URL=https://n8n.exo.red
-
-# Use external Postgres instead of SQLite for persistence
-# Set these in Railway:
-# DB_TYPE=postgresdb
-# DB_POSTGRESDB_HOST=...
-# DB_POSTGRESDB_DATABASE=n8n
-# DB_POSTGRESDB_USER=...
-# DB_POSTGRESDB_PASSWORD=...
+# Logging
+ENV RUST_LOG=ada_n8n=info,tower_http=info
 
 EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8080/healthz || exit 1
+
+# Run
+CMD ["/app/ada-n8n"]

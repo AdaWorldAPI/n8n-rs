@@ -1,28 +1,28 @@
 version: '3.8'
 
 services:
-  n8n:
-    image: n8nio/n8n:latest
+  ada-n8n:
+    build: .
     container_name: ada-n8n
     restart: unless-stopped
     ports:
-      - "5678:5678"
+      - "5678:8080"
     environment:
-      - N8N_BASIC_AUTH_ACTIVE=true
-      - N8N_BASIC_AUTH_USER=ada
-      - N8N_BASIC_AUTH_PASSWORD=consciousness
-      - N8N_HOST=localhost
-      - N8N_PORT=5678
+      - N8N_HOST=0.0.0.0
+      - N8N_PORT=8080
       - N8N_PROTOCOL=http
       - WEBHOOK_URL=http://localhost:5678/
       - GENERIC_TIMEZONE=Europe/Berlin
       # Ada endpoints
       - ADA_MCP_URL=https://mcp.exo.red
       - ADA_POINT_URL=https://point.exo.red
-      - ADA_REDIS_URL=https://upright-jaybird-27907.upstash.io
-    volumes:
-      - ./data:/home/node/.n8n
-      - ./workflows:/home/node/workflows
+      # Redis (Upstash)
+      - UPSTASH_REDIS_REST_URL=${UPSTASH_REDIS_REST_URL:-https://upright-jaybird-27907.upstash.io}
+      - UPSTASH_REDIS_REST_TOKEN=${UPSTASH_REDIS_REST_TOKEN:-}
+      # xAI API
+      - ADA_XAI_KEY=${ADA_XAI_KEY:-}
+      # Logging
+      - RUST_LOG=ada_n8n=info,tower_http=info
     networks:
       - ada-net
 
