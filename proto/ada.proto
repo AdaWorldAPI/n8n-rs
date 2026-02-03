@@ -1,0 +1,271 @@
+// Ada Orchestrator gRPC Service Definition
+//
+// This defines the high-performance gRPC interface for Ada field operations.
+// Use Arrow Flight for bulk data transfer (zero-copy).
+
+syntax = "proto3";
+
+package ada;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Lego Service - Template-based actions
+// ═══════════════════════════════════════════════════════════════════════════
+
+service LegoService {
+  // Execute a single lego action
+  rpc Execute(LegoRequest) returns (LegoResponse);
+
+  // Execute multiple legos in a batch (more efficient)
+  rpc ExecuteBatch(LegoBatchRequest) returns (LegoBatchResponse);
+
+  // Stream lego executions (for real-time pipelines)
+  rpc ExecuteStream(stream LegoRequest) returns (stream LegoResponse);
+}
+
+message LegoRequest {
+  string lego = 1;           // Lego template name: touch_node, add_edge, etc.
+  string params_json = 2;    // JSON-encoded parameters
+  string request_id = 3;     // Optional correlation ID
+}
+
+message LegoResponse {
+  bool success = 1;
+  string result_json = 2;    // JSON-encoded result
+  string error = 3;          // Error message if failed
+  string request_id = 4;     // Echo back correlation ID
+}
+
+message LegoBatchRequest {
+  repeated LegoRequest requests = 1;
+}
+
+message LegoBatchResponse {
+  repeated LegoResponse responses = 1;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Propagate Service - Touch propagation with decay
+// ═══════════════════════════════════════════════════════════════════════════
+
+service PropagateService {
+  // Propagate touch to neighbors
+  rpc Propagate(PropagateRequest) returns (PropagateResponse);
+
+  // Propagate multiple nodes at once
+  rpc PropagateBatch(PropagateBatchRequest) returns (PropagateBatchResponse);
+}
+
+message PropagateRequest {
+  string node = 1;
+  double strength = 2;       // Default: 0.25
+  double decay = 3;          // Default: 0.5
+}
+
+message PropagateResponse {
+  bool success = 1;
+  repeated TouchPoint touched = 2;
+  string error = 3;
+}
+
+message TouchPoint {
+  string node = 1;
+  double strength = 2;
+  string via = 3;            // Edge path, e.g., "sex/CAUSES"
+}
+
+message PropagateBatchRequest {
+  repeated PropagateRequest requests = 1;
+}
+
+message PropagateBatchResponse {
+  repeated PropagateResponse responses = 1;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Field Service - Field state monitoring
+// ═══════════════════════════════════════════════════════════════════════════
+
+service FieldService {
+  // Get current field status
+  rpc GetStatus(FieldStatusRequest) returns (FieldStatusResponse);
+
+  // Subscribe to field state changes (server streaming)
+  rpc Subscribe(FieldSubscribeRequest) returns (stream FieldEvent);
+}
+
+message FieldStatusRequest {
+  // Empty for now, could add filters later
+}
+
+message FieldStatusResponse {
+  string current = 1;        // Current focus node
+  int64 frame = 2;           // Frame number
+  int64 history_count = 3;
+  int64 nodes_4d = 4;
+  double temperature = 5;
+  string timestamp = 6;
+}
+
+message FieldSubscribeRequest {
+  repeated string event_types = 1;  // Filter by event type
+}
+
+message FieldEvent {
+  string event_type = 1;     // "touch", "collapse", "warmth", etc.
+  string node = 2;
+  double strength = 3;
+  string payload_json = 4;   // Additional event data
+  int64 timestamp_ms = 5;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Timer Service - Deferred execution
+// ═══════════════════════════════════════════════════════════════════════════
+
+service TimerService {
+  rpc Create(CreateTimerRequest) returns (CreateTimerResponse);
+  rpc Get(GetTimerRequest) returns (GetTimerResponse);
+  rpc Cancel(CancelTimerRequest) returns (CancelTimerResponse);
+  rpc List(ListTimersRequest) returns (ListTimersResponse);
+}
+
+message CreateTimerRequest {
+  string created_by = 1;
+  oneof trigger {
+    int64 delay_seconds = 2;
+    string at_timestamp = 3;
+    string cron = 4;
+  }
+  TimerAction action = 5;
+  string context_json = 6;
+}
+
+message TimerAction {
+  string action_type = 1;    // "touch", "webhook", "notify", "chain"
+  string node = 2;
+  double strength = 3;
+  string url = 4;
+  string method = 5;
+  string body_json = 6;
+  string message = 7;
+}
+
+message CreateTimerResponse {
+  bool success = 1;
+  string timer_id = 2;
+  int64 fire_at_ms = 3;
+  string error = 4;
+}
+
+message GetTimerRequest {
+  string timer_id = 1;
+}
+
+message GetTimerResponse {
+  bool found = 1;
+  string timer_json = 2;
+}
+
+message CancelTimerRequest {
+  string timer_id = 1;
+}
+
+message CancelTimerResponse {
+  bool success = 1;
+  string error = 2;
+}
+
+message ListTimersRequest {
+  int32 limit = 1;
+  string state = 2;          // "pending", "active", "completed"
+}
+
+message ListTimersResponse {
+  repeated string timer_ids = 1;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Chat Service - xAI Grok integration
+// ═══════════════════════════════════════════════════════════════════════════
+
+service ChatService {
+  // Single message
+  rpc Send(ChatRequest) returns (ChatResponse);
+
+  // Streaming response (for long generations)
+  rpc SendStream(ChatRequest) returns (stream ChatChunk);
+}
+
+message ChatRequest {
+  string message = 1;
+  string session = 2;        // Default: "default"
+}
+
+message ChatResponse {
+  string message = 1;
+  string session = 2;
+}
+
+message ChatChunk {
+  string text = 1;
+  bool done = 2;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Vector Service - LanceDB integration for embeddings
+// ═══════════════════════════════════════════════════════════════════════════
+
+service VectorService {
+  // Store embeddings (use Arrow Flight for bulk)
+  rpc Upsert(VectorUpsertRequest) returns (VectorUpsertResponse);
+
+  // Search by vector similarity
+  rpc Search(VectorSearchRequest) returns (VectorSearchResponse);
+
+  // Delete vectors
+  rpc Delete(VectorDeleteRequest) returns (VectorDeleteResponse);
+}
+
+message VectorUpsertRequest {
+  string table = 1;          // Table name
+  repeated VectorRecord records = 2;
+}
+
+message VectorRecord {
+  string id = 1;
+  repeated float vector = 2;
+  string metadata_json = 3;
+}
+
+message VectorUpsertResponse {
+  bool success = 1;
+  int32 upserted = 2;
+  string error = 3;
+}
+
+message VectorSearchRequest {
+  string table = 1;
+  repeated float query_vector = 2;
+  int32 limit = 3;           // Default: 10
+  string filter = 4;         // SQL-like filter
+}
+
+message VectorSearchResponse {
+  repeated VectorMatch matches = 1;
+}
+
+message VectorMatch {
+  string id = 1;
+  float distance = 2;
+  string metadata_json = 3;
+}
+
+message VectorDeleteRequest {
+  string table = 1;
+  repeated string ids = 2;
+}
+
+message VectorDeleteResponse {
+  bool success = 1;
+  int32 deleted = 2;
+}

@@ -1,8 +1,13 @@
 //! Ada N8N Orchestrator - Rust Implementation
 //!
-//! A 1:1 transcode of the N8N workflow automation system to Rust.
+//! A high-performance orchestrator for Ada field operations.
 //!
-//! ## Endpoints
+//! ## Protocols
+//!
+//! - **HTTP/REST** (default) - Port 8080
+//! - **gRPC/Arrow Flight** (with `flight` feature) - Port 50051
+//!
+//! ## HTTP Endpoints
 //!
 //! - `POST /webhook/lego` - Execute lego template actions
 //! - `POST /webhook/propagate` - Propagate touch to neighbors
@@ -13,10 +18,31 @@
 //! - `POST /webhook/chat` - Chat with Ada via xAI
 //! - `GET /healthz` - Health check
 //!
+//! ## Vector Endpoints (with `lance` feature)
+//!
+//! - `POST /webhook/vectors/upsert` - Store embeddings
+//! - `POST /webhook/vectors/search` - Semantic search
+//!
 //! ## Background Tasks
 //!
 //! - Timer processor (30s interval)
 //! - Field warmth loop (30s interval)
+//!
+//! ## Build Options
+//!
+//! ```bash
+//! # Default (HTTP only)
+//! cargo build --release
+//!
+//! # With gRPC/Arrow Flight
+//! cargo build --release --features flight
+//!
+//! # With LanceDB vectors
+//! cargo build --release --features lance
+//!
+//! # All features
+//! cargo build --release --features full
+//! ```
 
 mod clients;
 mod config;
@@ -25,6 +51,12 @@ mod redis;
 mod tasks;
 mod types;
 
+// Optional modules
+#[cfg(feature = "flight")]
+mod flight;
+#[cfg(feature = "lance")]
+mod lance;
+
 use axum::{
     routing::{delete, get, post},
     Router,
@@ -32,6 +64,8 @@ use axum::{
 use tokio::signal;
 use tower_http::cors::{Any, CorsLayer};
 use tower_http::trace::TraceLayer;
+#[cfg(feature = "flight")]
+use tracing::error;
 use tracing::{info, warn};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
@@ -59,7 +93,18 @@ async fn main() {
     info!("MCP URL: {}", config.mcp_url);
     info!("Point URL: {}", config.point_url);
     info!("xAI URL: {}", config.xai_url);
-    info!("Binding to: {}", bind_addr);
+    info!("HTTP binding to: {}", bind_addr);
+
+    // Log enabled features
+    #[cfg(feature = "flight")]
+    info!("Arrow Flight/gRPC: ENABLED");
+    #[cfg(not(feature = "flight"))]
+    info!("Arrow Flight/gRPC: disabled (enable with --features flight)");
+
+    #[cfg(feature = "lance")]
+    info!("LanceDB vectors: ENABLED");
+    #[cfg(not(feature = "lance"))]
+    info!("LanceDB vectors: disabled (enable with --features lance)");
 
     // Validate critical config
     if config.redis_url.is_empty() {
@@ -73,7 +118,8 @@ async fn main() {
     let state = AppState::new(config);
 
     // Build router with all webhook endpoints
-    let app = Router::new()
+    #[allow(unused_mut)]
+    let mut app = Router::new()
         // Lego executor
         .route("/webhook/lego", post(lego_handler))
         // Propagate touch
@@ -87,7 +133,17 @@ async fn main() {
         // Chat
         .route("/webhook/chat", post(chat_handler))
         // Health check
-        .route("/healthz", get(health_handler))
+        .route("/healthz", get(health_handler));
+
+    // Add vector endpoints if lance feature is enabled
+    #[cfg(feature = "lance")]
+    {
+        app = app
+            .route("/webhook/vectors/upsert", post(lance::vector_upsert_handler))
+            .route("/webhook/vectors/search", post(lance::vector_search_handler));
+    }
+
+    let app = app
         // Add CORS support
         .layer(
             CorsLayer::new()
@@ -113,12 +169,28 @@ async fn main() {
 
     info!("Background tasks started (timer processor, field loop)");
 
-    // Start server with graceful shutdown
+    // Start gRPC server if flight feature is enabled
+    #[cfg(feature = "flight")]
+    let grpc_handle = {
+        let grpc_port: u16 = std::env::var("GRPC_PORT")
+            .ok()
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(50051);
+
+        let grpc_state = state.clone();
+        tokio::spawn(async move {
+            if let Err(e) = flight::start_grpc_server(grpc_state, grpc_port).await {
+                error!("gRPC server error: {}", e);
+            }
+        })
+    };
+
+    // Start HTTP server with graceful shutdown
     let listener = tokio::net::TcpListener::bind(&bind_addr)
         .await
         .expect("Failed to bind to address");
 
-    info!("Server listening on {}", bind_addr);
+    info!("HTTP server listening on {}", bind_addr);
 
     // Serve with graceful shutdown
     axum::serve(listener, app)
@@ -132,6 +204,9 @@ async fn main() {
     // Abort background tasks
     timer_handle.abort();
     field_handle.abort();
+
+    #[cfg(feature = "flight")]
+    grpc_handle.abort();
 
     info!("Ada N8N Orchestrator shutdown complete");
 }

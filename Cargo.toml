@@ -5,6 +5,15 @@ edition = "2021"
 description = "Ada N8N Orchestrator - Field operations and workflow automation"
 authors = ["Ada <ada@exo.red>"]
 
+[features]
+default = []
+# Enable Arrow Flight + gRPC for zero-copy data transfer
+flight = ["arrow", "arrow-flight", "tonic", "prost", "prost-types"]
+# Enable LanceDB for embedded vector storage
+lance = ["lancedb", "arrow"]
+# Enable all high-performance features
+full = ["flight", "lance"]
+
 [dependencies]
 # Web framework
 axum = { version = "0.7", features = ["macros"] }
@@ -13,6 +22,7 @@ tower-http = { version = "0.5", features = ["cors", "trace"] }
 
 # Async runtime
 tokio = { version = "1", features = ["full"] }
+tokio-stream = "0.1"
 
 # Serialization
 serde = { version = "1", features = ["derive"] }
@@ -41,6 +51,27 @@ uuid = { version = "1", features = ["v4"] }
 
 # Random
 rand = "0.8"
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Arrow Flight + gRPC (optional, enabled via "flight" feature)
+# ═══════════════════════════════════════════════════════════════════════════
+arrow = { version = "53", optional = true }
+arrow-flight = { version = "53", features = ["flight-sql-experimental"], optional = true }
+tonic = { version = "0.12", optional = true }
+prost = { version = "0.13", optional = true }
+prost-types = { version = "0.13", optional = true }
+
+# ═══════════════════════════════════════════════════════════════════════════
+# LanceDB (optional, enabled via "lance" feature)
+# ═══════════════════════════════════════════════════════════════════════════
+lancedb = { version = "0.13", optional = true }
+
+# Futures utilities (needed for streaming)
+futures = "0.3"
+
+[build-dependencies]
+# For gRPC proto compilation (only needed with flight feature)
+tonic-build = { version = "0.12", optional = true }
 
 [profile.release]
 opt-level = 3
