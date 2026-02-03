@@ -70,7 +70,7 @@ message PropagateResponse {
 message TouchPoint {
   string node = 1;
   double strength = 2;
-  string via = 3;            // Edge path, e.g., "sex/CAUSES"
+  string via = 3;            // Edge path, e.g., "curiosity/INSPIRES"
 }
 
 message PropagateBatchRequest {

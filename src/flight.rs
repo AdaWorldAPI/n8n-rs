@@ -305,7 +305,7 @@ fn schema_to_bytes(schema: &Schema) -> Result<Vec<u8>, Status> {
 fn create_field_state_batch() -> Result<RecordBatch, Status> {
     let schema = field_state_schema();
 
-    let nodes = StringArray::from(vec!["sex", "arousal", "desire"]);
+    let nodes = StringArray::from(vec!["curiosity", "focus", "creativity"]);
     let strengths = Float32Array::from(vec![0.8, 0.6, 0.4]);
     let timestamps = StringArray::from(vec![
         chrono::Utc::now().to_rfc3339(),
@@ -320,9 +320,9 @@ fn create_field_state_batch() -> Result<RecordBatch, Status> {
 fn create_touch_history_batch() -> Result<RecordBatch, Status> {
     let schema = touch_history_schema();
 
-    let nodes = StringArray::from(vec!["sex", "arousal"]);
+    let nodes = StringArray::from(vec!["curiosity", "focus"]);
     let strengths = Float32Array::from(vec![0.5, 0.3]);
-    let vias = StringArray::from(vec![Some("direct"), Some("sex/CAUSES")]);
+    let vias = StringArray::from(vec![Some("direct"), Some("curiosity/INSPIRES")]);
     let timestamps = StringArray::from(vec![
         chrono::Utc::now().to_rfc3339(),
         chrono::Utc::now().to_rfc3339(),
