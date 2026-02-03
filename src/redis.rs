@@ -215,6 +215,7 @@ pub mod keys {
         format!("chat:markov:{}", session)
     }
 
+    #[allow(dead_code)]
     pub fn timer_history(id: &str) -> String {
         format!("ada:timers:history:{}", id)
     }

@@ -4,6 +4,11 @@
 //! - lego_catalog.yaml
 //! - timer_dto.yaml
 //! - Workflow JSON definitions
+//!
+//! Note: Some types are defined for API schema completeness and may not be
+//! directly constructed in code (they're deserialized from JSON).
+
+#![allow(dead_code)]
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;

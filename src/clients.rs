@@ -168,8 +168,8 @@ impl<'a> PointClient<'a> {
             .await
             .context("Failed to touch chat")?;
 
-        response.json().await.unwrap_or(Value::Null);
-        Ok(Value::Null)
+        let json_result: Result<Value, _> = response.json().await;
+        Ok(json_result.unwrap_or(Value::Null))
     }
 }
 
@@ -188,8 +188,6 @@ impl<'a> XAIClient<'a> {
 
     /// POST /v1/chat/completions - Chat with Grok
     pub async fn chat(&self, messages: Vec<ChatMessage>, max_tokens: i32, temperature: f64) -> Result<String> {
-        let url = "https://api.x.ai/v1/chat/completions";
-
         let request = XAIRequest {
             model: "grok-3-latest".to_string(),
             messages,
@@ -200,7 +198,7 @@ impl<'a> XAIClient<'a> {
         let response = self
             .state
             .http_client
-            .post(url)
+            .post(&self.state.config.xai_url)
             .header("Authorization", format!("Bearer {}", self.state.config.xai_key))
             .header("Content-Type", "application/json")
             .json(&request)

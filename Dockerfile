@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy manifests first for layer caching
-COPY Cargo.toml Cargo.lock* ./
+COPY Cargo.toml Cargo.lock ./
 
 # Create dummy src to build dependencies
 RUN mkdir src && \
@@ -39,15 +39,22 @@ FROM debian:bookworm-slim
 WORKDIR /app
 
 # Install runtime dependencies
+# - ca-certificates: for HTTPS connections
+# - curl: for healthcheck
 RUN apt-get update && apt-get install -y \
     ca-certificates \
+    curl \
     && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user for security
+RUN useradd -m -u 1000 -s /bin/bash ada
+USER ada
 
 # Copy binary from builder
 COPY --from=builder /app/target/release/ada-n8n /app/ada-n8n
 
 # Copy workflow definitions (for reference/config)
-COPY workflows /app/workflows
+COPY --chown=ada:ada workflows /app/workflows
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Environment Configuration
@@ -71,7 +78,7 @@ ENV RUST_LOG=ada_n8n=info,tower_http=info
 
 EXPOSE 8080
 
-# Health check
+# Health check - uses curl which is now installed
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8080/healthz || exit 1
 
