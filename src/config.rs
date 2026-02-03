@@ -6,7 +6,11 @@ use std::env;
 use std::sync::Arc;
 
 /// Application configuration loaded from environment variables
+///
+/// Note: Some fields are loaded for completeness but may not be actively used
+/// in all code paths (e.g., auth fields for future middleware).
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct Config {
     // Server config
     pub host: String,
@@ -17,6 +21,7 @@ pub struct Config {
     // External service URLs
     pub mcp_url: String,
     pub point_url: String,
+    pub xai_url: String,
 
     // Redis (Upstash)
     pub redis_url: String,
@@ -25,7 +30,7 @@ pub struct Config {
     // xAI API
     pub xai_key: String,
 
-    // Auth
+    // Auth (for future middleware)
     pub basic_auth_user: Option<String>,
     pub basic_auth_password: Option<String>,
 
@@ -54,6 +59,8 @@ impl Config {
             mcp_url: env::var("ADA_MCP_URL").unwrap_or_else(|_| "https://mcp.exo.red".to_string()),
             point_url: env::var("ADA_POINT_URL")
                 .unwrap_or_else(|_| "https://point.exo.red".to_string()),
+            xai_url: env::var("ADA_XAI_URL")
+                .unwrap_or_else(|_| "https://api.x.ai/v1/chat/completions".to_string()),
             redis_url: env::var("UPSTASH_REDIS_REST_URL")
                 .or_else(|_| env::var("ADA_REDIS_URL"))
                 .unwrap_or_default(),
