@@ -31,7 +31,7 @@ curl -X POST http://localhost:5678/webhook/lego \
   -H "Content-Type: application/json" \
   -d '{
     "lego": "touch_node",
-    "params": { "node": "sex" }
+    "params": { "node": "curiosity" }
   }'
 ```
 
@@ -43,9 +43,9 @@ curl -X POST http://localhost:5678/webhook/lego \
   -d '{
     "lego": "add_edge",
     "params": {
-      "from": "desire",
-      "verb": "CAUSES",
-      "to": "arousal",
+      "from": "curiosity",
+      "verb": "INSPIRES",
+      "to": "creativity",
       "weight": 0.8
     }
   }'
@@ -57,7 +57,7 @@ curl -X POST http://localhost:5678/webhook/lego \
 curl -X POST http://localhost:5678/webhook/propagate \
   -H "Content-Type: application/json" \
   -d '{
-    "node": "sex",
+    "node": "curiosity",
     "strength": 0.5,
     "decay": 0.6
   }'

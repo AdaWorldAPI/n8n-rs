@@ -55,7 +55,7 @@ TimerDTO:
             condition: { type: string, enum: [hits_above, hits_below, rung_above, rung_below, edge_exists, edge_missing] }
             threshold: { type: number }
             check_interval_seconds: { type: integer, default: 60 }
-          example: { watch_node: "desire", condition: "hits_above", threshold: 10 }
+          example: { watch_node: "focus", condition: "hits_above", threshold: 10 }
     
     # What to do
     action:
@@ -98,7 +98,7 @@ TimerDTO:
       description: "Arbitrary context passed through"
       example:
         source_session: "chat_xyz"
-        intent: "check if arousal persisted"
+        intent: "check if focus persisted"
         sigma: "#Σ.A.Θ.5"
     
     # State
@@ -129,10 +129,10 @@ TimerDTO:
         delay_seconds: 300
       action:
         type: "touch"
-        node: "desire"
+        node: "curiosity"
         strength: 0.3
       context:
-        intent: "keep desire warm while Jan is away"
+        intent: "keep curiosity warm during idle period"
     
     scheduled_sweep:
       id: "t_cron_001"
