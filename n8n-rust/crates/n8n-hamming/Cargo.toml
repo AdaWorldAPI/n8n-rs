@@ -1,0 +1,22 @@
+[package]
+name = "n8n-hamming"
+description = "10kbit bitpacked Hamming vectors for efficient similarity operations"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+sha2 = { workspace = true }
+rand = { workspace = true }
+thiserror = { workspace = true }
+bincode = { workspace = true }
+bytes = { workspace = true }
+
+[dev-dependencies]
+criterion = "0.5"
+
+[[bench]]
+name = "hamming_bench"
+harness = false

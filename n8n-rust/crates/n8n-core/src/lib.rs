@@ -1,0 +1,22 @@
+//! # n8n-core
+//!
+//! Workflow execution engine for n8n-rust.
+//!
+//! This crate provides the core execution logic for running workflows,
+//! including the stack-based execution model that enables:
+//! - Resumable executions
+//! - Wait nodes (pause and resume)
+//! - Partial execution (test specific nodes)
+//! - Error handling and retry logic
+
+pub mod engine;
+pub mod error;
+pub mod executor;
+pub mod node_types;
+pub mod runtime;
+pub mod storage;
+
+pub use engine::*;
+pub use error::*;
+pub use executor::*;
+pub use runtime::*;

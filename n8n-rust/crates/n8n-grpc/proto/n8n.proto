@@ -1,0 +1,528 @@
+syntax = "proto3";
+
+package n8n;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
+
+// ============================================================================
+// Workflow Service - Core workflow management and execution
+// ============================================================================
+
+service WorkflowService {
+    // Workflow CRUD operations
+    rpc CreateWorkflow(CreateWorkflowRequest) returns (WorkflowResponse);
+    rpc GetWorkflow(GetWorkflowRequest) returns (WorkflowResponse);
+    rpc UpdateWorkflow(UpdateWorkflowRequest) returns (WorkflowResponse);
+    rpc DeleteWorkflow(DeleteWorkflowRequest) returns (DeleteWorkflowResponse);
+    rpc ListWorkflows(ListWorkflowsRequest) returns (ListWorkflowsResponse);
+
+    // Workflow execution
+    rpc ExecuteWorkflow(ExecuteWorkflowRequest) returns (ExecutionResponse);
+    rpc ExecuteWorkflowStream(ExecuteWorkflowRequest) returns (stream ExecutionEvent);
+
+    // Execution management
+    rpc GetExecution(GetExecutionRequest) returns (ExecutionResponse);
+    rpc CancelExecution(CancelExecutionRequest) returns (CancelExecutionResponse);
+    rpc RetryExecution(RetryExecutionRequest) returns (ExecutionResponse);
+}
+
+// ============================================================================
+// Arrow Flight Service - Zero-copy data streaming
+// ============================================================================
+
+service ArrowDataService {
+    // Stream workflow execution data as Arrow RecordBatches
+    rpc StreamExecutionData(StreamDataRequest) returns (stream ArrowRecordBatch);
+
+    // Bidirectional streaming for real-time execution
+    rpc ExecuteWithArrowStream(stream ArrowInputData) returns (stream ArrowRecordBatch);
+
+    // Bulk data transfer for node outputs
+    rpc GetNodeOutputArrow(GetNodeOutputRequest) returns (stream ArrowRecordBatch);
+
+    // Upload data as Arrow format
+    rpc PutArrowData(stream ArrowRecordBatch) returns (PutArrowDataResponse);
+}
+
+// ============================================================================
+// Hamming Similarity Service - Bitpacked 10kbit vector operations
+// ============================================================================
+
+service HammingService {
+    // Create fingerprint from data
+    rpc CreateFingerprint(CreateFingerprintRequest) returns (FingerprintResponse);
+
+    // Batch create fingerprints
+    rpc CreateFingerprintBatch(stream CreateFingerprintRequest) returns (stream FingerprintResponse);
+
+    // Similarity search
+    rpc FindSimilar(SimilaritySearchRequest) returns (SimilaritySearchResponse);
+
+    // Bind/unbind operations (XOR-based)
+    rpc BindFingerprints(BindRequest) returns (FingerprintResponse);
+    rpc UnbindFingerprint(UnbindRequest) returns (FingerprintResponse);
+
+    // Distance calculation
+    rpc CalculateDistance(DistanceRequest) returns (DistanceResponse);
+
+    // Stream similarity search results
+    rpc FindSimilarStream(SimilaritySearchRequest) returns (stream SimilarityMatch);
+}
+
+// ============================================================================
+// Message Types - Workflow
+// ============================================================================
+
+message Workflow {
+    string id = 1;
+    string name = 2;
+    optional string description = 3;
+    bool active = 4;
+    repeated Node nodes = 5;
+    map<string, NodeConnections> connections = 6;
+    WorkflowSettings settings = 7;
+    optional google.protobuf.Struct static_data = 8;
+    map<string, PinnedNodeData> pin_data = 9;
+    optional string version_id = 10;
+    google.protobuf.Timestamp created_at = 11;
+    google.protobuf.Timestamp updated_at = 12;
+}
+
+message Node {
+    string id = 1;
+    string name = 2;
+    string type = 3;
+    uint32 type_version = 4;
+    repeated double position = 5;  // [x, y]
+    bool disabled = 6;
+    google.protobuf.Struct parameters = 7;
+    map<string, CredentialRef> credentials = 8;
+    bool continue_on_fail = 9;
+    bool retry_on_fail = 10;
+    optional uint32 max_tries = 11;
+    optional uint64 wait_between_tries = 12;
+    bool always_output_data = 13;
+    bool execute_once = 14;
+    OnError on_error = 15;
+    optional string notes = 16;
+}
+
+message CredentialRef {
+    string id = 1;
+    string name = 2;
+}
+
+message NodeConnections {
+    map<string, ConnectionsByIndex> by_type = 1;
+}
+
+message ConnectionsByIndex {
+    repeated ConnectionList outputs = 1;
+}
+
+message ConnectionList {
+    repeated Connection connections = 1;
+}
+
+message Connection {
+    string node = 1;
+    string type = 2;
+    uint32 index = 3;
+}
+
+message WorkflowSettings {
+    optional string timezone = 1;
+    optional string error_workflow = 2;
+    optional SaveDataOption save_data_error_execution = 3;
+    optional SaveDataOption save_data_success_execution = 4;
+    optional uint64 execution_timeout = 5;
+    optional ExecutionOrder execution_order = 6;
+    optional BinaryMode binary_mode = 7;
+    optional bool save_manual_executions = 8;
+    optional bool save_execution_progress = 9;
+}
+
+message PinnedNodeData {
+    repeated NodeExecutionData items = 1;
+}
+
+enum OnError {
+    ON_ERROR_STOP_WORKFLOW = 0;
+    ON_ERROR_CONTINUE_REGULAR = 1;
+    ON_ERROR_CONTINUE_ERROR = 2;
+}
+
+enum SaveDataOption {
+    SAVE_DATA_ALL = 0;
+    SAVE_DATA_NONE = 1;
+}
+
+enum ExecutionOrder {
+    EXECUTION_ORDER_V0 = 0;
+    EXECUTION_ORDER_V1 = 1;
+}
+
+enum BinaryMode {
+    BINARY_MODE_DEFAULT = 0;
+    BINARY_MODE_STORED = 1;
+    BINARY_MODE_S3 = 2;
+}
+
+// ============================================================================
+// Message Types - Execution
+// ============================================================================
+
+message NodeExecutionData {
+    google.protobuf.Struct json = 1;
+    map<string, BinaryData> binary = 2;
+    optional ExecutionError error = 3;
+    repeated PairedItemData paired_item = 4;
+}
+
+message BinaryData {
+    string data = 1;  // Base64 or reference ID
+    string mime_type = 2;
+    optional string file_name = 3;
+    optional string file_extension = 4;
+    optional string file_size = 5;
+    optional uint64 bytes = 6;
+    optional string id = 7;
+    optional BinaryFileType file_type = 8;
+}
+
+enum BinaryFileType {
+    BINARY_FILE_TYPE_TEXT = 0;
+    BINARY_FILE_TYPE_JSON = 1;
+    BINARY_FILE_TYPE_IMAGE = 2;
+    BINARY_FILE_TYPE_AUDIO = 3;
+    BINARY_FILE_TYPE_VIDEO = 4;
+    BINARY_FILE_TYPE_PDF = 5;
+    BINARY_FILE_TYPE_HTML = 6;
+    BINARY_FILE_TYPE_OTHER = 7;
+}
+
+message PairedItemData {
+    uint32 item = 1;
+    optional uint32 input = 2;
+    optional string source_overwrite = 3;
+}
+
+message ExecutionError {
+    string message = 1;
+    optional string node_name = 2;
+    optional uint32 item_index = 3;
+    optional uint32 run_index = 4;
+    optional string description = 5;
+    optional string cause = 6;
+    optional string stack = 7;
+    google.protobuf.Timestamp timestamp = 8;
+}
+
+message TaskData {
+    int64 start_time = 1;
+    int64 execution_time = 2;
+    ExecutionStatus execution_status = 3;
+    map<string, TaskDataConnection> data = 4;
+    optional ExecutionError error = 5;
+}
+
+message TaskDataConnection {
+    repeated NodeExecutionDataList outputs = 1;
+}
+
+message NodeExecutionDataList {
+    repeated NodeExecutionData items = 1;
+}
+
+enum ExecutionStatus {
+    EXECUTION_STATUS_NEW = 0;
+    EXECUTION_STATUS_RUNNING = 1;
+    EXECUTION_STATUS_SUCCESS = 2;
+    EXECUTION_STATUS_ERROR = 3;
+    EXECUTION_STATUS_WAITING = 4;
+    EXECUTION_STATUS_CANCELED = 5;
+    EXECUTION_STATUS_CRASHED = 6;
+}
+
+enum WorkflowExecuteMode {
+    WORKFLOW_EXECUTE_MODE_MANUAL = 0;
+    WORKFLOW_EXECUTE_MODE_TRIGGER = 1;
+    WORKFLOW_EXECUTE_MODE_WEBHOOK = 2;
+    WORKFLOW_EXECUTE_MODE_ERROR = 3;
+    WORKFLOW_EXECUTE_MODE_WAIT = 4;
+    WORKFLOW_EXECUTE_MODE_SCHEDULED = 5;
+    WORKFLOW_EXECUTE_MODE_WORKER = 6;
+    WORKFLOW_EXECUTE_MODE_RETRY = 7;
+    WORKFLOW_EXECUTE_MODE_INTERNAL = 8;
+}
+
+message ExecutionResult {
+    string execution_id = 1;
+    string workflow_id = 2;
+    ExecutionStatus status = 3;
+    WorkflowExecuteMode mode = 4;
+    google.protobuf.Timestamp started_at = 5;
+    optional google.protobuf.Timestamp finished_at = 6;
+    map<string, NodeRunData> run_data = 7;
+    optional ExecutionError error = 8;
+    optional google.protobuf.Timestamp wait_till = 9;
+}
+
+message NodeRunData {
+    repeated TaskData runs = 1;
+}
+
+message ExecutionEvent {
+    oneof event {
+        ExecutionStarted started = 1;
+        NodeStarted node_started = 2;
+        NodeFinished node_finished = 3;
+        ExecutionFinished finished = 4;
+        ExecutionError error = 5;
+    }
+}
+
+message ExecutionStarted {
+    string execution_id = 1;
+    string workflow_id = 2;
+    google.protobuf.Timestamp started_at = 3;
+}
+
+message NodeStarted {
+    string node_name = 1;
+    uint32 run_index = 2;
+}
+
+message NodeFinished {
+    string node_name = 1;
+    uint32 run_index = 2;
+    TaskData task_data = 3;
+}
+
+message ExecutionFinished {
+    ExecutionResult result = 1;
+}
+
+// ============================================================================
+// Message Types - Arrow Data
+// ============================================================================
+
+message ArrowRecordBatch {
+    // Arrow IPC serialized RecordBatch
+    bytes data = 1;
+    // Schema (sent once at start of stream)
+    optional bytes schema = 2;
+    // Metadata
+    map<string, string> metadata = 3;
+}
+
+message ArrowInputData {
+    oneof input {
+        // Initial workflow execution request
+        ExecuteWorkflowRequest execute_request = 1;
+        // Arrow data to feed into nodes
+        ArrowRecordBatch record_batch = 2;
+        // Control message
+        StreamControl control = 3;
+    }
+}
+
+message StreamControl {
+    oneof control {
+        bool cancel = 1;
+        bool pause = 2;
+        bool resume = 3;
+    }
+}
+
+// ============================================================================
+// Message Types - Hamming Fingerprints
+// ============================================================================
+
+message Fingerprint {
+    // 10kbit vector packed as bytes (1250 bytes)
+    bytes data = 1;
+    // Optional identifier
+    optional string id = 2;
+    // Optional metadata
+    map<string, string> metadata = 3;
+}
+
+message SimilarityMatch {
+    Fingerprint fingerprint = 1;
+    uint32 distance = 2;
+    double similarity = 3;  // 1.0 - (distance / 10000)
+}
+
+// ============================================================================
+// Request/Response Messages - Workflow
+// ============================================================================
+
+message CreateWorkflowRequest {
+    string name = 1;
+    optional string description = 2;
+    repeated Node nodes = 3;
+    map<string, NodeConnections> connections = 4;
+    optional WorkflowSettings settings = 5;
+}
+
+message GetWorkflowRequest {
+    string workflow_id = 1;
+}
+
+message UpdateWorkflowRequest {
+    string workflow_id = 1;
+    optional string name = 2;
+    optional string description = 3;
+    optional bool active = 4;
+    repeated Node nodes = 5;
+    map<string, NodeConnections> connections = 6;
+    optional WorkflowSettings settings = 7;
+}
+
+message DeleteWorkflowRequest {
+    string workflow_id = 1;
+}
+
+message DeleteWorkflowResponse {
+    bool success = 1;
+}
+
+message ListWorkflowsRequest {
+    optional uint32 limit = 1;
+    optional uint32 offset = 2;
+    optional bool active_only = 3;
+    optional string search = 4;
+}
+
+message ListWorkflowsResponse {
+    repeated Workflow workflows = 1;
+    uint32 total = 2;
+}
+
+message WorkflowResponse {
+    Workflow workflow = 1;
+}
+
+message ExecuteWorkflowRequest {
+    string workflow_id = 1;
+    // Optional input data for trigger node
+    optional google.protobuf.Struct input_data = 2;
+    // Start from specific nodes
+    repeated string start_nodes = 3;
+    // Destination for partial execution
+    optional string destination_node = 4;
+    // Execution mode
+    optional WorkflowExecuteMode mode = 5;
+    // Pin data override
+    map<string, PinnedNodeData> pin_data = 6;
+    // Whether to stream results as Arrow
+    bool use_arrow_stream = 7;
+}
+
+message ExecutionResponse {
+    ExecutionResult result = 1;
+}
+
+message GetExecutionRequest {
+    string execution_id = 1;
+}
+
+message CancelExecutionRequest {
+    string execution_id = 1;
+}
+
+message CancelExecutionResponse {
+    bool success = 1;
+    ExecutionStatus final_status = 2;
+}
+
+message RetryExecutionRequest {
+    string execution_id = 1;
+    // Start from failed node or from beginning
+    bool from_failed_node = 2;
+}
+
+// ============================================================================
+// Request/Response Messages - Arrow
+// ============================================================================
+
+message StreamDataRequest {
+    string execution_id = 1;
+    // Optional: specific nodes to stream
+    repeated string node_names = 2;
+    // Optional: specific run indices
+    repeated uint32 run_indices = 3;
+}
+
+message GetNodeOutputRequest {
+    string execution_id = 1;
+    string node_name = 2;
+    optional uint32 run_index = 3;
+    optional string connection_type = 4;
+}
+
+message PutArrowDataResponse {
+    uint64 rows_written = 1;
+    map<string, string> metadata = 2;
+}
+
+// ============================================================================
+// Request/Response Messages - Hamming
+// ============================================================================
+
+message CreateFingerprintRequest {
+    oneof source {
+        // Create from raw data
+        bytes raw_data = 1;
+        // Create from seed string
+        string seed = 2;
+        // Create from JSON data
+        google.protobuf.Struct json_data = 3;
+    }
+    // Optional ID to assign
+    optional string id = 4;
+    // Optional metadata
+    map<string, string> metadata = 5;
+}
+
+message FingerprintResponse {
+    Fingerprint fingerprint = 1;
+}
+
+message SimilaritySearchRequest {
+    Fingerprint query = 1;
+    // Max results to return
+    uint32 top_k = 2;
+    // Max distance threshold (0-10000)
+    optional uint32 max_distance = 3;
+    // Collection/namespace to search
+    optional string collection = 4;
+}
+
+message SimilaritySearchResponse {
+    repeated SimilarityMatch matches = 1;
+    uint64 total_searched = 2;
+    uint64 search_time_ms = 3;
+}
+
+message BindRequest {
+    Fingerprint a = 1;
+    Fingerprint b = 2;
+}
+
+message UnbindRequest {
+    Fingerprint bound = 1;
+    Fingerprint key = 2;
+}
+
+message DistanceRequest {
+    Fingerprint a = 1;
+    Fingerprint b = 2;
+}
+
+message DistanceResponse {
+    uint32 hamming_distance = 1;
+    double similarity = 2;
+}
