@@ -1,0 +1,28 @@
+[package]
+name = "n8n-server"
+description = "Combined gRPC/HTTP server for n8n-rust"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "n8n-server"
+path = "src/main.rs"
+
+[dependencies]
+n8n-workflow = { path = "../n8n-workflow" }
+n8n-core = { path = "../n8n-core" }
+n8n-arrow = { path = "../n8n-arrow" }
+n8n-grpc = { path = "../n8n-grpc" }
+n8n-hamming = { path = "../n8n-hamming" }
+
+tonic = { workspace = true }
+tonic-reflection = { workspace = true }
+
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }

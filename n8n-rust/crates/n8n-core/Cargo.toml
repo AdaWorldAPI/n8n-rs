@@ -1,0 +1,25 @@
+[package]
+name = "n8n-core"
+description = "Workflow execution engine for n8n-rust"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+n8n-workflow = { path = "../n8n-workflow" }
+n8n-arrow = { path = "../n8n-arrow" }
+n8n-hamming = { path = "../n8n-hamming" }
+
+tokio = { workspace = true }
+tokio-util = { version = "0.7", features = ["rt"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+async-trait = { workspace = true }
+futures = { workspace = true }
+dashmap = { workspace = true }
+parking_lot = { workspace = true }

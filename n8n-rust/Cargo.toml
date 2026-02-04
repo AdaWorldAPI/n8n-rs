@@ -1,0 +1,77 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/n8n-core",
+    "crates/n8n-workflow",
+    "crates/n8n-grpc",
+    "crates/n8n-arrow",
+    "crates/n8n-hamming",
+    "crates/n8n-server",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/AdaWorldAPI/n8n-rs"
+authors = ["AdaWorld API Team"]
+
+[workspace.dependencies]
+# Async runtime
+tokio = { version = "1.35", features = ["full"] }
+tokio-stream = "0.1"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+bincode = "1.3"
+
+# gRPC
+tonic = "0.11"
+prost = "0.12"
+tonic-reflection = "0.11"
+
+# Arrow / DataFusion / Lance
+arrow = { version = "50", features = ["ffi"] }
+arrow-array = "50"
+arrow-schema = "50"
+arrow-buffer = "50"
+arrow-ipc = "50"
+arrow-flight = "50"
+datafusion = "35"
+lancedb = "0.4"
+lance = "0.9"
+parquet = "50"
+
+# Parallelism
+rayon = "1.8"
+crossbeam = "0.8"
+dashmap = "5.5"
+
+# Utilities
+uuid = { version = "1.6", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+thiserror = "1.0"
+anyhow = "1.0"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+bytes = "1.5"
+async-trait = "0.1"
+futures = "0.3"
+parking_lot = "0.12"
+
+# Hashing / Crypto
+sha2 = "0.10"
+rand = "0.8"
+
+# Build
+tonic-build = "0.11"
+
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = 3
+
+[profile.bench]
+lto = true

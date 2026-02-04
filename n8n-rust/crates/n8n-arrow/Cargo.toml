@@ -1,0 +1,28 @@
+[package]
+name = "n8n-arrow"
+description = "Apache Arrow integration with zero-copy data transfer for n8n-rust"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+n8n-workflow = { path = "../n8n-workflow" }
+
+arrow = { workspace = true }
+arrow-array = { workspace = true }
+arrow-schema = { workspace = true }
+arrow-buffer = { workspace = true }
+arrow-ipc = { workspace = true }
+arrow-flight = { workspace = true }
+datafusion = { workspace = true }
+parquet = { workspace = true }
+
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+bytes = { workspace = true }
+futures = { workspace = true }
+async-trait = { workspace = true }
+tracing = { workspace = true }
