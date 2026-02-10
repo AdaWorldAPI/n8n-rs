@@ -1,41 +1,117 @@
 # n8n-rust
 
-A Rust implementation of the n8n workflow automation engine with gRPC, Arrow/LanceDB zero-copy data streaming, and 10kbit Hamming vector similarity search.
+A Rust implementation of the n8n workflow automation engine with multi-transport support, intelligent content negotiation, Arrow/LanceDB zero-copy data streaming, and 10kbit Hamming vector similarity search.
 
 ## Overview
 
 This project provides a high-performance Rust backend for n8n workflow automation with:
 
-- **gRPC Services**: Full workflow management and execution via Protocol Buffers
+- **Multi-Transport**: gRPC, Arrow Flight, REST, and STDIO transports
+- **Intelligent Negotiation**: Automatic format/transport selection based on capabilities
 - **Arrow Zero-Copy**: Apache Arrow IPC for efficient data transfer without serialization overhead
 - **Arrow Flight**: High-performance streaming of execution data
 - **Hamming Vectors**: 10,000-bit fingerprints for similarity search (inspired by ladybug-rs/firefly)
-- **JSON Fallback**: Full JSON compatibility for existing integrations
+- **Graceful Fallback**: Seamless degradation with upgrade hints
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                        n8n-server                                │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
-│  │ WorkflowService │  │ ArrowDataService│  │ HammingService  │  │
-│  │     (gRPC)      │  │   (Flight)      │  │    (gRPC)       │  │
-│  └────────┬────────┘  └────────┬────────┘  └────────┬────────┘  │
-│           │                    │                    │           │
-│  ┌────────┴────────────────────┴────────────────────┴────────┐  │
-│  │                       n8n-grpc                             │  │
-│  └────────┬────────────────────┬────────────────────┬────────┘  │
-│           │                    │                    │           │
-│  ┌────────┴────────┐  ┌────────┴────────┐  ┌────────┴────────┐  │
-│  │    n8n-core     │  │   n8n-arrow     │  │  n8n-hamming    │  │
-│  │ (Exec Engine)   │  │ (Zero-Copy IO)  │  │ (10kbit Vecs)   │  │
-│  └────────┬────────┘  └─────────────────┘  └─────────────────┘  │
-│           │                                                      │
-│  ┌────────┴────────┐                                            │
-│  │  n8n-workflow   │                                            │
-│  │  (Core Types)   │                                            │
-│  └─────────────────┘                                            │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              n8n-server                                      │
+│  ┌───────────┐  ┌───────────┐  ┌───────────┐  ┌───────────┐  ┌───────────┐  │
+│  │   REST    │  │   gRPC    │  │  Flight   │  │   STDIO   │  │ Negotiator│  │
+│  │  :8080    │  │  :50051   │  │  :50052   │  │  stdin/out│  │           │  │
+│  └─────┬─────┘  └─────┬─────┘  └─────┬─────┘  └─────┬─────┘  └─────┬─────┘  │
+│        │              │              │              │              │        │
+│        └──────────────┴──────────────┴──────────────┴──────────────┘        │
+│                                      │                                       │
+│  ┌───────────────────────────────────┴───────────────────────────────────┐  │
+│  │                           Transport Layer                              │  │
+│  │   Content Negotiation • Health Tracking • Graceful Fallback           │  │
+│  └───────────────────────────────────┬───────────────────────────────────┘  │
+│                                      │                                       │
+│  ┌─────────────┐  ┌─────────────┐  ┌─┴───────────┐  ┌─────────────┐        │
+│  │  Workflow   │  │    Arrow    │  │   Hamming   │  │    Core     │        │
+│  │  Service    │  │   Service   │  │   Service   │  │   Engine    │        │
+│  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘        │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+## Multi-Transport Support
+
+The server supports multiple transports with intelligent negotiation:
+
+| Transport | Best For | Streaming | Zero-Copy |
+|-----------|----------|-----------|-----------|
+| Arrow Flight | Large datasets, analytics | ✓ | ✓ |
+| gRPC | RPC calls, bidirectional | ✓ | - |
+| REST | Universal compatibility | - | - |
+| STDIO | CLI tools, pipes | ✓ | - |
+
+### Fallback Chain
+
+```
+Flight → gRPC → REST → STDIO
+```
+
+If a transport fails, the system automatically suggests alternatives with upgrade hints.
+
+## Content Negotiation
+
+### Via Accept Header
+
+```bash
+# Request Arrow format
+curl -H "Accept: application/vnd.apache.arrow.stream" \
+     http://localhost:8080/api/v1/executions/123
+
+# Response includes negotiation info
+# X-Content-Format: arrow-ipc
+# X-Format-Negotiated: true
+# X-Upgrade-Available: arrow-flight
+```
+
+### Via Query Parameter
+
+```bash
+curl "http://localhost:8080/api/v1/executions/123?fmt=arrow-ipc"
+```
+
+### Via Format Switch Endpoint
+
+```bash
+# Switch to Arrow Flight mid-session
+curl -X POST http://localhost:8080/api/v1/format/switch \
+  -H "Content-Type: application/json" \
+  -d '{"format": "arrow-flight", "transport": "flight"}'
+
+# Response:
+# {
+#   "success": true,
+#   "newFormat": "arrow-flight",
+#   "newTransport": "flight",
+#   "newEndpoint": "/flight",
+#   "headers": {"Accept": "application/vnd.apache.arrow.flight"}
+# }
+```
+
+### Negotiate Endpoint
+
+```bash
+# Ask server for best format based on data characteristics
+curl -X POST http://localhost:8080/api/v1/negotiate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "formats": ["json", "arrow-ipc"],
+    "transports": ["rest", "flight"],
+    "dataHints": {
+      "sizeBytes": 10000000,
+      "streaming": true,
+      "columnar": true
+    }
+  }'
+
+# Response recommends optimal format/transport
 ```
 
 ## Crates
@@ -73,15 +149,17 @@ Apache Arrow integration:
 
 ### n8n-grpc
 
-gRPC service implementations:
+Multi-transport services:
 - Protocol Buffer definitions
+- REST API with content negotiation
+- STDIO transport for CLI
 - WorkflowService (CRUD, execution, streaming)
 - ArrowDataService (zero-copy data streaming)
 - HammingService (similarity search)
 
 ### n8n-server
 
-Combined gRPC/Flight server binary.
+Multi-transport server binary.
 
 ## Features
 
@@ -120,6 +198,17 @@ let distance = cat.distance(&dog);  // Hamming distance (0-10000)
 let similarity = cat.similarity(&dog);  // 0.0 to 1.0
 ```
 
+### STDIO Transport
+
+```bash
+# Enable STDIO mode
+N8N_STDIO_ENABLED=1 cargo run --bin n8n-server
+
+# Send JSON-RPC style messages
+echo '{"type":"request","id":"1","method":"ping","params":{}}' | n8n-server
+# {"type":"response","id":"1","result":{"pong":true}}
+```
+
 ### Workflow Execution
 
 ```rust
@@ -138,31 +227,19 @@ let engine = WorkflowEngine::new(RuntimeConfig::default());
 let run = engine.execute(&workflow, WorkflowExecuteMode::Manual, None).await?;
 ```
 
-## Protocol Buffers
+## Configuration
 
-The gRPC API is defined in `crates/n8n-grpc/proto/n8n.proto`:
+Environment variables:
 
-```protobuf
-service WorkflowService {
-    rpc CreateWorkflow(CreateWorkflowRequest) returns (WorkflowResponse);
-    rpc ExecuteWorkflow(ExecuteWorkflowRequest) returns (ExecutionResponse);
-    rpc ExecuteWorkflowStream(ExecuteWorkflowRequest) returns (stream ExecutionEvent);
-    // ...
-}
-
-service ArrowDataService {
-    rpc StreamExecutionData(StreamDataRequest) returns (stream ArrowRecordBatch);
-    rpc ExecuteWithArrowStream(stream ArrowInputData) returns (stream ArrowRecordBatch);
-    // ...
-}
-
-service HammingService {
-    rpc CreateFingerprint(CreateFingerprintRequest) returns (FingerprintResponse);
-    rpc FindSimilar(SimilaritySearchRequest) returns (SimilaritySearchResponse);
-    rpc BindFingerprints(BindRequest) returns (FingerprintResponse);
-    // ...
-}
-```
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `N8N_REST_ENABLED` | `true` | Enable REST API |
+| `N8N_REST_ADDR` | `0.0.0.0:8080` | REST API address |
+| `N8N_GRPC_ENABLED` | `true` | Enable gRPC |
+| `N8N_GRPC_ADDR` | `0.0.0.0:50051` | gRPC address |
+| `N8N_FLIGHT_ENABLED` | `true` | Enable Arrow Flight |
+| `N8N_FLIGHT_ADDR` | `0.0.0.0:50052` | Flight address |
+| `N8N_STDIO_ENABLED` | `false` | Enable STDIO transport |
 
 ## Building
 
@@ -174,12 +251,37 @@ cargo build --release
 ## Running
 
 ```bash
-# Set address (optional, defaults to 0.0.0.0:50051)
-export N8N_GRPC_ADDR=0.0.0.0:50051
-
-# Run server
+# Run with defaults (REST + gRPC + Flight)
 cargo run --release --bin n8n-server
+
+# With STDIO enabled
+N8N_STDIO_ENABLED=1 cargo run --release --bin n8n-server
+
+# Custom ports
+N8N_REST_ADDR=0.0.0.0:3000 N8N_GRPC_ADDR=0.0.0.0:9000 cargo run --release --bin n8n-server
 ```
+
+## API Endpoints
+
+### REST
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/health` | Health check |
+| GET | `/ready` | Readiness check |
+| GET | `/api/v1/capabilities` | Server capabilities |
+| POST | `/api/v1/negotiate` | Format negotiation |
+| POST | `/api/v1/format/switch` | Switch format |
+
+### STDIO Methods
+
+| Method | Description |
+|--------|-------------|
+| `capabilities` | Get server capabilities |
+| `ping` | Health check |
+| `workflow.list` | List workflows |
+| `workflow.execute` | Execute workflow |
+| `hamming.create` | Create fingerprint |
 
 ## Benchmarks
 

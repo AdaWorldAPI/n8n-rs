@@ -26,3 +26,7 @@ thiserror = { workspace = true }
 anyhow = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+hex = "0.4"
+axum = "0.7"
