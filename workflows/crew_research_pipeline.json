@@ -1,0 +1,56 @@
+{
+  "name": "crew_research_pipeline",
+  "description": "Research pipeline that delegates to crewAI agents for analysis, then notifies via Slack",
+  "nodes": [
+    {
+      "id": "webhook-trigger",
+      "type": "n8n.webhook",
+      "name": "Research Webhook",
+      "parameters": {
+        "path": "/api/research",
+        "method": "POST"
+      }
+    },
+    {
+      "id": "research-crew",
+      "type": "crew.agent",
+      "name": "Research Crew",
+      "parameters": {
+        "crew_yaml": "research_crew.yaml",
+        "agents": ["researcher", "analyst"],
+        "process": "sequential",
+        "task": "Research and analyze the given topic",
+        "max_iterations": 5
+      }
+    },
+    {
+      "id": "lb-index",
+      "type": "lb.index",
+      "name": "Index Results",
+      "parameters": {
+        "collection": "research_results",
+        "embed_fields": ["summary", "findings"]
+      }
+    },
+    {
+      "id": "notify-slack",
+      "type": "n8n.slack",
+      "name": "Notify Slack",
+      "parameters": {
+        "channel": "#results",
+        "message_template": "Research complete: {{research-crew.output.summary}}"
+      }
+    }
+  ],
+  "connections": {
+    "webhook-trigger": {
+      "main": [[{ "node": "research-crew" }]]
+    },
+    "research-crew": {
+      "main": [[{ "node": "lb-index" }]]
+    },
+    "lb-index": {
+      "main": [[{ "node": "notify-slack" }]]
+    }
+  }
+}

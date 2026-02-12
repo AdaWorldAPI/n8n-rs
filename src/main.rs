@@ -40,18 +40,14 @@
 //! # With LanceDB vectors
 //! cargo build --release --features lance
 //!
+//! # With PostgreSQL contract store
+//! cargo build --release --features postgres
+//!
 //! # All features
 //! cargo build --release --features full
 //! ```
 
-mod clients;
-mod config;
-mod handlers;
-mod redis;
-mod tasks;
-mod types;
-
-// Optional modules
+// Optional feature-gated modules (binary-only, not in lib.rs)
 #[cfg(feature = "flight")]
 mod flight;
 #[cfg(feature = "lance")]
@@ -69,9 +65,9 @@ use tracing::error;
 use tracing::{info, warn};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-use crate::config::{AppState, Config};
-use crate::handlers::*;
-use crate::tasks::{start_field_loop, start_timer_processor};
+use ada_n8n::config::{AppState, Config};
+use ada_n8n::handlers::*;
+use ada_n8n::tasks::{start_field_loop, start_timer_processor};
 
 #[tokio::main]
 async fn main() {
@@ -105,6 +101,23 @@ async fn main() {
     info!("LanceDB vectors: ENABLED");
     #[cfg(not(feature = "lance"))]
     info!("LanceDB vectors: disabled (enable with --features lance)");
+
+    #[cfg(feature = "postgres")]
+    info!("PostgreSQL contract store: ENABLED");
+    #[cfg(not(feature = "postgres"))]
+    info!("PostgreSQL contract store: disabled (enable with --features postgres)");
+
+    // Log unified contract routing config
+    if config.crewai_endpoint.is_some() {
+        info!("CrewAI endpoint: {}", config.crewai_endpoint.as_deref().unwrap_or(""));
+    } else {
+        info!("CrewAI endpoint: not configured (set CREWAI_ENDPOINT to enable)");
+    }
+    if config.ladybug_endpoint.is_some() {
+        info!("Ladybug endpoint: {}", config.ladybug_endpoint.as_deref().unwrap_or(""));
+    } else {
+        info!("Ladybug endpoint: not configured (set LADYBUG_ENDPOINT to enable)");
+    }
 
     // Validate critical config
     if config.redis_url.is_empty() {
