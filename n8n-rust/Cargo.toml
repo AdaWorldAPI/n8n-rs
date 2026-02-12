@@ -6,6 +6,7 @@ members = [
     "crates/n8n-grpc",
     "crates/n8n-arrow",
     "crates/n8n-hamming",
+    "crates/n8n-db",
     "crates/n8n-server",
 ]
 
