@@ -1,0 +1,38 @@
+[package]
+name = "n8n-db"
+description = "PostgreSQL persistence layer for n8n-rust, faithful to the original TypeORM schema"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+n8n-workflow = { path = "../n8n-workflow" }
+
+# Async PostgreSQL
+sqlx = { version = "0.7", features = [
+    "runtime-tokio",
+    "tls-rustls",
+    "postgres",
+    "uuid",
+    "chrono",
+    "json",
+    "migrate"
+] }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Async
+tokio = { workspace = true }
+async-trait = { workspace = true }
+futures = { workspace = true }
+
+# Types
+uuid = { workspace = true }
+chrono = { workspace = true }
+
+# Utilities
+thiserror = { workspace = true }
+tracing = { workspace = true }
+nanoid = "0.4"
