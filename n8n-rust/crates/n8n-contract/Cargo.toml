@@ -1,0 +1,42 @@
+[package]
+name = "n8n-contract"
+description = "Unified execution contract for crewai-rust / n8n-rs / ladybug-rs collaboration"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+n8n-workflow = { path = "../n8n-workflow" }
+n8n-core = { path = "../n8n-core" }
+
+# HTTP client for crew/ladybug routing
+reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Async
+tokio = { workspace = true }
+async-trait = { workspace = true }
+
+# Types
+uuid = { workspace = true }
+chrono = { workspace = true }
+
+# Utilities
+thiserror = { workspace = true }
+tracing = { workspace = true }
+
+# PostgreSQL (optional, for PgStore)
+[dependencies.sqlx]
+version = "0.7"
+features = ["runtime-tokio", "tls-rustls", "postgres", "uuid", "chrono", "json", "migrate"]
+optional = true
+
+[features]
+default = []
+postgres = ["dep:sqlx"]
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["test-util", "macros"] }
