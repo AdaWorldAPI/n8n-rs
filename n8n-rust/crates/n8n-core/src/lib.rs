@@ -25,3 +25,6 @@ pub use expression::{
     parse, parse_template, resolve_parameter,
 };
 pub use runtime::*;
+pub use storage::{
+    ExecutionStorage, WorkflowStorage, MemoryExecutionStorage, MemoryWorkflowStorage,
+};

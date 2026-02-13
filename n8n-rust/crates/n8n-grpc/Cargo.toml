@@ -16,6 +16,7 @@ prost = { workspace = true }
 tonic-reflection = { workspace = true }
 
 arrow = { workspace = true }
+arrow-array = { workspace = true }
 arrow-flight = { workspace = true }
 arrow-ipc = { workspace = true }
 

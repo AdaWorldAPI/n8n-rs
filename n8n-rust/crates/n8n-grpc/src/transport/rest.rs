@@ -289,7 +289,6 @@ pub struct SwitchFormatResponse {
 }
 
 pub async fn switch_format(
-    State(negotiator): State<Arc<FormatNegotiator>>,
     Json(request): Json<SwitchFormatRequest>,
 ) -> Json<SwitchFormatResponse> {
     let format = ContentFormat::from_str(&request.format);
@@ -321,10 +320,7 @@ pub async fn switch_format(
 }
 
 /// Create the REST API router.
-pub fn create_router<S>(state: RestState<S>) -> Router
-where
-    S: Send + Sync + 'static,
-{
+pub fn create_router(negotiator: Arc<FormatNegotiator>) -> Router {
     let cors = CorsLayer::new()
         .allow_origin(Any)
         .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE])
@@ -340,11 +336,11 @@ where
         .route("/ready", get(readiness_check))
         // Add negotiation middleware
         .layer(middleware::from_fn_with_state(
-            state.negotiator.clone(),
+            negotiator.clone(),
             negotiate_content,
         ))
         .layer(cors)
-        .with_state(state)
+        .with_state(negotiator)
 }
 
 async fn health_check() -> &'static str {

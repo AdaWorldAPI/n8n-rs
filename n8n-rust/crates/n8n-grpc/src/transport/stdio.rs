@@ -198,7 +198,7 @@ impl StdioTransport {
     }
 
     /// Run the transport, reading from stdin and writing to stdout.
-    pub async fn run(self) -> io::Result<()> {
+    pub async fn run(mut self) -> io::Result<()> {
         let stdin = tokio::io::stdin();
         let stdout = tokio::io::stdout();
         let mut reader = BufReader::new(stdin);

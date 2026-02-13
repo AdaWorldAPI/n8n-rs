@@ -5,7 +5,7 @@ use n8n_arrow::{
     run_data_to_batch, workflow_connections_to_batch, workflow_nodes_to_batch, ArrowError,
     WorkflowFlightService,
 };
-use n8n_core::{MemoryExecutionStorage, MemoryWorkflowStorage};
+use n8n_core::{ExecutionStorage, WorkflowStorage, MemoryExecutionStorage, MemoryWorkflowStorage};
 use n8n_workflow::NodeExecutionData;
 use arrow_array::RecordBatch;
 use async_trait::async_trait;
@@ -191,7 +191,7 @@ impl WorkflowFlightService for ArrowDataService {
             .executions
             .get_execution(execution_id)
             .await
-            .map_err(|e| ArrowError::FlightError(e.to_string()))?
+            .map_err(|e: n8n_core::ExecutionEngineError| ArrowError::FlightError(e.to_string()))?
             .ok_or_else(|| ArrowError::FlightError(format!("Execution {} not found", execution_id)))?;
 
         let batch = run_data_to_batch(&run.data.result_data.run_data)?;
@@ -206,7 +206,7 @@ impl WorkflowFlightService for ArrowDataService {
             .executions
             .get_execution(execution_id)
             .await
-            .map_err(|e| ArrowError::FlightError(e.to_string()))?
+            .map_err(|e: n8n_core::ExecutionEngineError| ArrowError::FlightError(e.to_string()))?
             .ok_or_else(|| ArrowError::FlightError(format!("Execution {} not found", execution_id)))?;
 
         let batch = run_data_to_batch(&run.data.result_data.run_data)?;
@@ -220,7 +220,7 @@ impl WorkflowFlightService for ArrowDataService {
         _execution_id: &str,
         batches: Vec<RecordBatch>,
     ) -> Result<u64, ArrowError> {
-        let rows: usize = batches.iter().map(|b| b.num_rows()).sum();
+        let rows: usize = batches.iter().map(|b: &RecordBatch| b.num_rows()).sum();
         Ok(rows as u64)
     }
 }

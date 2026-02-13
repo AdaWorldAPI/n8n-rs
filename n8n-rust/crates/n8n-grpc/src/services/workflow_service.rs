@@ -2,8 +2,8 @@
 
 use n8n_arrow::{batch_to_ipc_bytes, run_data_to_batch, run_to_summary_batch};
 use n8n_core::{
-    ExecutionEngineError, ExecutionEvent, MemoryExecutionStorage, MemoryWorkflowStorage,
-    RuntimeConfig, WorkflowEngine,
+    ExecutionEngineError, ExecutionEvent, ExecutionStorage, WorkflowStorage,
+    MemoryExecutionStorage, MemoryWorkflowStorage, RuntimeConfig, WorkflowEngine,
 };
 use n8n_workflow::{
     ExecutionStatus, Node, NodeExecutionData, Run, Workflow, WorkflowExecuteMode,

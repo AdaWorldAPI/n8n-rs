@@ -54,11 +54,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // REST API
     if config.rest_enabled {
         let rest_addr: SocketAddr = config.rest_addr.parse()?;
-        let rest_state = RestState {
-            service: state.clone(),
-            negotiator: negotiator.clone(),
-        };
-        let router = create_router(rest_state);
+        let router = create_router(negotiator.clone());
 
         info!("Starting REST API on http://{}", rest_addr);
         let handle = tokio::spawn(async move {

@@ -39,6 +39,31 @@ impl ExecutionStatus {
             ExecutionStatus::Error | ExecutionStatus::Crashed | ExecutionStatus::Canceled
         )
     }
+
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            ExecutionStatus::New => "new",
+            ExecutionStatus::Running => "running",
+            ExecutionStatus::Success => "success",
+            ExecutionStatus::Error => "error",
+            ExecutionStatus::Waiting => "waiting",
+            ExecutionStatus::Canceled => "canceled",
+            ExecutionStatus::Crashed => "crashed",
+        }
+    }
+
+    pub fn from_str(s: &str) -> Option<Self> {
+        match s {
+            "new" => Some(ExecutionStatus::New),
+            "running" => Some(ExecutionStatus::Running),
+            "success" => Some(ExecutionStatus::Success),
+            "error" => Some(ExecutionStatus::Error),
+            "waiting" => Some(ExecutionStatus::Waiting),
+            "canceled" => Some(ExecutionStatus::Canceled),
+            "crashed" => Some(ExecutionStatus::Crashed),
+            _ => None,
+        }
+    }
 }
 
 /// Task data connections - output data organized by connection type and index.
