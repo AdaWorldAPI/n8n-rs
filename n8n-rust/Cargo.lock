@@ -2760,6 +2760,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "n8n-contract"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "chrono",
+ "n8n-core",
+ "n8n-workflow",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "thiserror 1.0.69",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "n8n-core"
 version = "0.1.0"
 dependencies = [

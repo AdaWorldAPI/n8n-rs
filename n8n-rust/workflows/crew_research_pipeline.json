@@ -1,0 +1,67 @@
+{
+  "name": "Crew Research Pipeline",
+  "nodes": [
+    {
+      "id": "trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "parameters": {
+        "path": "/api/research",
+        "httpMethod": "POST"
+      }
+    },
+    {
+      "id": "research",
+      "name": "Research Agent",
+      "type": "crew.agent",
+      "typeVersion": 1,
+      "position": [500, 300],
+      "parameters": {
+        "role": "researcher",
+        "goal": "Find and summarize the latest information on the given topic",
+        "backstory": "You are an expert research analyst with access to web search"
+      }
+    },
+    {
+      "id": "resonate",
+      "name": "CAM Resonate",
+      "type": "lb.resonate",
+      "typeVersion": 1,
+      "position": [750, 300],
+      "parameters": {
+        "operation": "resonate",
+        "namespace": "research-cache"
+      }
+    },
+    {
+      "id": "format",
+      "name": "Format Results",
+      "type": "n8n.set",
+      "typeVersion": 1,
+      "position": [1000, 300],
+      "parameters": {
+        "values": {
+          "summary": "={{ $json.data }}",
+          "source": "crew-research-pipeline",
+          "timestamp": "={{ $now }}"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [[{ "node": "Research Agent", "type": "main", "index": 0 }]]
+    },
+    "Research Agent": {
+      "main": [[{ "node": "CAM Resonate", "type": "main", "index": 0 }]]
+    },
+    "CAM Resonate": {
+      "main": [[{ "node": "Format Results", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
