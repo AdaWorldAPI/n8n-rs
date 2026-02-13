@@ -1,7 +1,8 @@
 [package]
 name = "ada-n8n"
 version = "1.0.0"
-edition = "2021"
+edition = "2024"
+rust-version = "1.85"
 description = "Ada N8N Orchestrator - Field operations and workflow automation"
 authors = ["Ada <ada@exo.red>"]
 
