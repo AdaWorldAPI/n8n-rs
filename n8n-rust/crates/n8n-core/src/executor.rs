@@ -3,7 +3,6 @@
 use crate::error::ExecutionEngineError;
 use crate::runtime::RuntimeContext;
 use async_trait::async_trait;
-use chrono::Utc;
 use n8n_workflow::{DataObject, Node, NodeExecutionData, TaskDataConnections};
 use std::collections::HashMap;
 use std::sync::Arc;

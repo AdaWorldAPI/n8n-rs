@@ -10,7 +10,6 @@ use arrow_flight::{
     FlightData, FlightDescriptor, FlightEndpoint, FlightInfo, HandshakeRequest,
     HandshakeResponse, PutResult, SchemaAsIpc, SchemaResult, Ticket,
 };
-use arrow_ipc::writer::IpcWriteOptions;
 use arrow_schema::Schema;
 use async_trait::async_trait;
 use futures::stream::BoxStream;
@@ -50,7 +49,7 @@ where
     use arrow_flight::error::FlightError;
 
     let flight_stream = stream.map(|r: Result<FlightData, Status>| {
-        r.map_err(|e: Status| FlightError::Tonic(e))
+        r.map_err(|e: Status| FlightError::Tonic(Box::new(e)))
     });
 
     let mut decoder = FlightRecordBatchStream::new_from_flight_data(flight_stream);
@@ -193,7 +192,7 @@ impl<T: WorkflowFlightService + 'static> FlightService for N8nFlightService<T> {
             Arc::new(Schema::empty())
         };
 
-        let options = IpcWriteOptions::default();
+        let options = crate::ipc::aligned_ipc_options();
         let schema_as_ipc = SchemaAsIpc::new(&schema, &options);
         let result = SchemaResult::try_from(schema_as_ipc)
             .map_err(|e| Status::internal(e.to_string()))?;

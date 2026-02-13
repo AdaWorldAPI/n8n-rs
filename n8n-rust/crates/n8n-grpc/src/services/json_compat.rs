@@ -5,7 +5,7 @@
 
 use bytes::Bytes;
 use n8n_workflow::{
-    ExecutionStatus, Node, NodeExecutionData, Run, RunData, TaskData, Workflow,
+    Node, NodeExecutionData, Run, TaskData, Workflow,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;

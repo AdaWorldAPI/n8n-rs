@@ -122,7 +122,7 @@ impl TransportManager {
         // STDIO runs in foreground if enabled
         if config.stdio_enabled {
             let (transport, mut handler) = StdioTransport::new();
-            let service = service.clone();
+            let _service = service.clone();
 
             let handle = tokio::spawn(async move {
                 // Handle STDIO messages

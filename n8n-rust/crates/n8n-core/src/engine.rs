@@ -11,12 +11,11 @@ use crate::executor::{NodeExecutorRegistry, NodeOutput};
 use crate::runtime::{RuntimeConfig, RuntimeContext};
 use n8n_workflow::{
     connection::{graph, CONNECTION_MAIN},
-    ExecuteData, ExecutionContext, ExecutionStatus, InternalExecutionData, Node,
-    NodeExecutionData, ResultData, Run, RunData, RunExecutionData, StartData,
-    StartNodeData, TaskData, TaskDataConnections, TaskDataConnectionsSource, Workflow,
+    ExecuteData, ExecutionStatus,
+    NodeExecutionData, Run, TaskData, TaskDataConnections, TaskDataConnectionsSource, Workflow,
     WorkflowExecuteMode,
 };
-use std::collections::{HashMap, VecDeque};
+use std::collections::VecDeque;
 use std::sync::Arc;
 use tokio::sync::mpsc;
 use tracing::{debug, error, info, warn};
@@ -114,7 +113,7 @@ impl WorkflowEngine {
         let mut stack = self.initialize_stack(workflow, &start_nodes, input_data)?;
 
         // Build connections by destination for parent lookups
-        let connections_by_dest = graph::map_connections_by_destination(&workflow.connections);
+        let _connections_by_dest = graph::map_connections_by_destination(&workflow.connections);
 
         // Execute nodes from stack
         while let Some(execute_data) = stack.pop_front() {

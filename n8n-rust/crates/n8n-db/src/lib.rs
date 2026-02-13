@@ -42,9 +42,42 @@ pub mod entities;
 pub mod error;
 pub mod repositories;
 
-pub use entities::*;
+// Re-export entity types explicitly to avoid ambiguous glob re-exports
+// (entities and repositories have submodules with the same names).
+pub use entities::{
+    generate_nano_id, generate_version_id, Timestamps,
+    // Workflow entities
+    WorkflowEntity, WorkflowMeta, WorkflowHistory, SharedWorkflow,
+    WorkflowSharingRole, WorkflowTagMapping, InsertWorkflow, UpdateWorkflow,
+    // Execution entities
+    ExecutionEntity, ExecutionData, ExecutionMetadata, ExecutionFilters,
+    ExecutionWithData, InsertExecution, UpdateExecution,
+    // Credentials entities
+    CredentialsEntity, SharedCredentials, CredentialSharingRole,
+    InsertCredentials, UpdateCredentials, CredentialFilters,
+    // User entities
+    User, UserSettings, Role, AuthIdentity, ApiKey,
+    // Project entities
+    Project, ProjectIcon, ProjectRelation,
+    // Tag entities
+    TagEntity, InsertTag,
+    // Webhook entities
+    WebhookEntity, InsertWebhook,
+    // Settings entities
+    Setting,
+    // Variables entities
+    Variable, InsertVariable,
+};
+
 pub use error::*;
-pub use repositories::*;
+
+// Re-export repository types explicitly.
+pub use repositories::{
+    DbContext,
+    WorkflowRepository, ExecutionRepository, CredentialsRepository,
+    TagRepository, UserRepository, ProjectRepository, SettingsRepository,
+    VariablesRepository, WebhookRepository,
+};
 
 use sqlx::postgres::{PgPool, PgPoolOptions};
 use std::time::Duration;

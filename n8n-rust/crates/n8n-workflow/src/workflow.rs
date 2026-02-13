@@ -1,7 +1,6 @@
 //! Workflow definition types.
 
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use uuid::Uuid;
 
 use crate::connection::{WorkflowConnections, CONNECTION_MAIN};

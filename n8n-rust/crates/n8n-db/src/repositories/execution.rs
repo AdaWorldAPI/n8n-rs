@@ -65,12 +65,12 @@ impl ExecutionRepository {
             conditions.push("deleted_at IS NULL".to_string());
         }
 
-        if let Some(ref workflow_id) = filters.workflow_id {
+        if filters.workflow_id.is_some() {
             conditions.push(format!("workflow_id = ${}", param_idx));
             param_idx += 1;
         }
 
-        if let Some(finished) = filters.finished {
+        if filters.finished.is_some() {
             conditions.push(format!("finished = ${}", param_idx));
             param_idx += 1;
         }
@@ -189,18 +189,17 @@ impl ExecutionRepository {
     /// Update an execution.
     pub async fn update(&self, id: &str, update: &UpdateExecution) -> Result<ExecutionEntity, DbError> {
         let mut set_clauses = Vec::new();
-        let mut values: Vec<Box<dyn sqlx::Encode<'_, sqlx::Postgres> + Send + Sync>> = vec![];
 
-        if let Some(finished) = update.finished {
+        if update.finished.is_some() {
             set_clauses.push(format!("finished = ${}", set_clauses.len() + 2));
         }
-        if let Some(ref status) = update.status {
+        if update.status.is_some() {
             set_clauses.push(format!("status = ${}", set_clauses.len() + 2));
         }
-        if let Some(started_at) = update.started_at {
+        if update.started_at.is_some() {
             set_clauses.push(format!("started_at = ${}", set_clauses.len() + 2));
         }
-        if let Some(stopped_at) = update.stopped_at {
+        if update.stopped_at.is_some() {
             set_clauses.push(format!("stopped_at = ${}", set_clauses.len() + 2));
         }
 

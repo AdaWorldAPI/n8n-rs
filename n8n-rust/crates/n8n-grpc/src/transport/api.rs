@@ -33,7 +33,7 @@ pub struct ExecutionStore {
 }
 
 #[derive(Clone)]
-struct ExecutionMetadata {
+pub struct ExecutionMetadata {
     workflow_id: String,
     workflow_name: String,
 }
@@ -698,7 +698,7 @@ pub async fn retry_execution(
 // Router Setup
 // ============================================================================
 
-use axum::{Router, routing::{get as axum_get, post as axum_post, put as axum_put, delete as axum_delete}};
+use axum::{Router, routing::{get as axum_get, post as axum_post}};
 
 /// Create the n8n-compatible REST API router.
 pub fn create_api_router(state: ApiState) -> Router {

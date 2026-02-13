@@ -14,7 +14,7 @@ use futures::stream::BoxStream;
 use std::pin::Pin;
 use std::sync::Arc;
 use tokio::sync::mpsc;
-use tokio_stream::{wrappers::ReceiverStream, Stream, StreamExt};
+use tokio_stream::{wrappers::ReceiverStream, Stream};
 use tonic::Status;
 
 /// Arrow data service for zero-copy streaming.
