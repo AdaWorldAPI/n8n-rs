@@ -2487,6 +2487,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "ladybug-contract"
+version = "0.1.0"
+source = "git+https://github.com/AdaWorldAPI/ladybug-rs.git?branch=claude%2Fcheck-module-status-MlttF#0670c8688759f6bc2e4f7a6691f2e4805eb26dd9"
+dependencies = [
+ "chrono",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "lazy_static"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2765,6 +2775,7 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "chrono",
+ "ladybug-contract",
  "n8n-core",
  "n8n-workflow",
  "reqwest",
