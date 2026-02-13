@@ -11,7 +11,7 @@
 
 use n8n_grpc::{
     ArrowDataService, HammingGrpcService, WorkflowGrpcService, WorkflowServiceState,
-    TransportConfig, TransportManager, FormatNegotiator, RestState, create_router,
+    TransportConfig, FormatNegotiator, create_router,
     TransportCapabilities, create_api_router, ApiState, ExecutionStore,
 };
 use std::net::SocketAddr;
@@ -39,9 +39,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     info!("Initializing services...");
 
-    let workflow_service = WorkflowGrpcService::new(state.clone());
-    let arrow_service = ArrowDataService::new(state.workflows.clone(), state.executions.clone());
-    let hamming_service = HammingGrpcService::new();
+    let _workflow_service = WorkflowGrpcService::new(state.clone());
+    let _arrow_service = ArrowDataService::new(state.workflows.clone(), state.executions.clone());
+    let _hamming_service = HammingGrpcService::new();
 
     info!("  [✓] WorkflowService: workflow CRUD and execution");
     info!("  [✓] ArrowDataService: zero-copy data streaming");
@@ -239,7 +239,7 @@ async fn handle_stdio_message(
     msg: n8n_grpc::StdioMessage,
     _state: &Arc<WorkflowServiceState>,
 ) {
-    use n8n_grpc::{StdioMessage, StdioResponse, StdioError, NegotiateMessage};
+    use n8n_grpc::{StdioMessage, NegotiateMessage};
 
     match msg {
         StdioMessage::Request(req) => {

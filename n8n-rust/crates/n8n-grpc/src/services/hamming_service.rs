@@ -1,6 +1,6 @@
 //! Hamming similarity gRPC service.
 
-use n8n_hamming::{HammingError, HammingIndex, HammingVector};
+use n8n_hamming::{HammingIndex, HammingVector};
 use bytes::Bytes;
 use std::collections::HashMap;
 use std::pin::Pin;

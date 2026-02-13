@@ -40,4 +40,4 @@ tower-http = { version = "0.5", features = ["cors", "trace"] }
 async-stream = "0.3"
 
 [build-dependencies]
-tonic-build = { workspace = true }
+tonic-prost-build = { workspace = true }

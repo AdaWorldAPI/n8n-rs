@@ -6,7 +6,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 
-use n8n_workflow::{Connection, Node, WorkflowSettings};
+use n8n_workflow::{Node, WorkflowSettings};
 
 use super::generate_nano_id;
 

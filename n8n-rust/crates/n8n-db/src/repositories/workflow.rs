@@ -179,7 +179,7 @@ impl WorkflowRepository {
         }
         if update.connections.is_some() {
             set_clauses.push(format!("connections = ${}", param_idx));
-            param_idx += 1;
+            // No need to increment param_idx further; this is the last dynamic parameter.
         }
 
         // Always increment version counter

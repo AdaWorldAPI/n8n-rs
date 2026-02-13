@@ -7,10 +7,9 @@ use arrow_array::{
     TimestampMillisecondArray, UInt32Array,
 };
 use n8n_workflow::{
-    DataObject, ExecutionStatus, GenericValue, Node, NodeExecutionData, Run, RunData, TaskData,
-    Workflow, WorkflowExecuteMode,
+    DataObject, NodeExecutionData, Run, RunData,
+    Workflow,
 };
-use std::collections::HashMap;
 use std::sync::Arc;
 
 /// Convert a vector of NodeExecutionData to an Arrow RecordBatch.

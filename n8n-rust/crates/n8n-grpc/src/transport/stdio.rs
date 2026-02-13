@@ -3,10 +3,8 @@
 //! This module provides a line-delimited JSON and binary protocol
 //! over standard input/output for embedding in CLI tools and scripts.
 
-use bytes::{Buf, BufMut, Bytes, BytesMut};
 use serde::{Deserialize, Serialize};
 use std::io::{self, BufRead, Write};
-use std::sync::Arc;
 use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader};
 use tokio::sync::mpsc;
 
@@ -189,7 +187,7 @@ impl StdioTransport {
         };
 
         let handler = StdioHandler {
-            format,
+            _format: format,
             request_rx,
             response_tx,
         };
@@ -334,7 +332,7 @@ impl Default for StdioTransport {
 
 /// Handler for processing STDIO requests.
 pub struct StdioHandler {
-    format: FrameFormat,
+    _format: FrameFormat,
     request_rx: mpsc::Receiver<StdioMessage>,
     response_tx: mpsc::Sender<StdioMessage>,
 }

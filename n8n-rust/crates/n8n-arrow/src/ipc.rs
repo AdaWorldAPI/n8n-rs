@@ -1,4 +1,8 @@
 //! Arrow IPC (Inter-Process Communication) utilities for zero-copy data transfer.
+//!
+//! All IPC buffers use 64-byte alignment (Arrow max) for optimal SIMD performance.
+//! gRPC exchange buffers are padded to 1024-byte boundaries (power of 2) for
+//! content-addressable memory (CAM) compatibility.
 
 use crate::error::ArrowError;
 use arrow_array::RecordBatch;
@@ -8,6 +12,32 @@ use arrow_schema::Schema;
 use bytes::{Bytes, BytesMut};
 use std::io::Cursor;
 use std::sync::Arc;
+
+/// Arrow IPC alignment: 64 bytes (maximum supported by Arrow IPC).
+const IPC_ALIGNMENT: usize = 64;
+
+/// gRPC buffer alignment: 1024 bytes (power of 2) for CAM address compatibility.
+pub const GRPC_BUFFER_ALIGNMENT: usize = 1024;
+
+/// Create IPC write options with power-of-2 aligned buffers.
+pub fn aligned_ipc_options() -> IpcWriteOptions {
+    IpcWriteOptions::try_new(IPC_ALIGNMENT, false, arrow_ipc::MetadataVersion::V5)
+        .expect("64-byte alignment is valid")
+}
+
+/// Pad a byte buffer to the nearest GRPC_BUFFER_ALIGNMENT boundary (1024 bytes).
+/// Ensures all addresses exchanged via gRPC are power-of-2 aligned.
+pub fn pad_to_grpc_alignment(data: Vec<u8>) -> Vec<u8> {
+    let len = data.len();
+    let aligned_len = (len + GRPC_BUFFER_ALIGNMENT - 1) & !(GRPC_BUFFER_ALIGNMENT - 1);
+    if aligned_len == len {
+        data
+    } else {
+        let mut padded = data;
+        padded.resize(aligned_len, 0);
+        padded
+    }
+}
 
 /// Options for IPC serialization.
 #[derive(Debug, Clone)]
@@ -36,7 +66,7 @@ pub fn batch_to_ipc_bytes(batch: &RecordBatch) -> Result<Bytes, ArrowError> {
     let mut buffer = Vec::new();
 
     {
-        let options = IpcWriteOptions::default();
+        let options = aligned_ipc_options();
         let mut writer = StreamWriter::try_new_with_options(&mut buffer, &batch.schema(), options)?;
         writer.write(batch)?;
         writer.finish()?;
@@ -55,7 +85,7 @@ pub fn batches_to_ipc_bytes(batches: &[RecordBatch]) -> Result<Bytes, ArrowError
     let mut buffer = Vec::new();
 
     {
-        let options = IpcWriteOptions::default();
+        let options = aligned_ipc_options();
         let mut writer = StreamWriter::try_new_with_options(&mut buffer, &schema, options)?;
         for batch in batches {
             writer.write(batch)?;
@@ -95,7 +125,7 @@ pub fn ipc_bytes_schema(bytes: &[u8]) -> Result<Arc<Schema>, ArrowError> {
 
 /// Streaming IPC writer that can write batches incrementally.
 pub struct IncrementalIpcWriter {
-    buffer: BytesMut,
+    _buffer: BytesMut,
     schema: Arc<Schema>,
     started: bool,
 }
@@ -103,7 +133,7 @@ pub struct IncrementalIpcWriter {
 impl IncrementalIpcWriter {
     pub fn new(schema: Arc<Schema>) -> Self {
         Self {
-            buffer: BytesMut::new(),
+            _buffer: BytesMut::new(),
             schema,
             started: false,
         }
@@ -116,7 +146,7 @@ impl IncrementalIpcWriter {
         let mut temp_buffer = Vec::new();
 
         {
-            let options = IpcWriteOptions::default();
+            let options = aligned_ipc_options();
             let mut writer = StreamWriter::try_new_with_options(&mut temp_buffer, &self.schema, options)?;
             writer.write(batch)?;
             writer.finish()?;

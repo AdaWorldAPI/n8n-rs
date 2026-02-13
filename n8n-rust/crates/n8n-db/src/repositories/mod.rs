@@ -24,7 +24,6 @@ pub use webhook::*;
 pub use workflow::*;
 
 use sqlx::PgPool;
-use std::sync::Arc;
 
 /// Database context containing all repositories.
 #[derive(Clone)]

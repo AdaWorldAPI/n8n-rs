@@ -71,7 +71,7 @@ pub struct Node {
     #[prost(string, optional, tag = "16")]
     pub notes: ::core::option::Option<::prost::alloc::string::String>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct CredentialRef {
     #[prost(string, tag = "1")]
     pub id: ::prost::alloc::string::String,
@@ -96,7 +96,7 @@ pub struct ConnectionList {
     #[prost(message, repeated, tag = "1")]
     pub connections: ::prost::alloc::vec::Vec<Connection>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct Connection {
     #[prost(string, tag = "1")]
     pub node: ::prost::alloc::string::String,
@@ -105,7 +105,7 @@ pub struct Connection {
     #[prost(uint32, tag = "3")]
     pub index: u32,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct WorkflowSettings {
     #[prost(string, optional, tag = "1")]
     pub timezone: ::core::option::Option<::prost::alloc::string::String>,
@@ -142,7 +142,7 @@ pub struct NodeExecutionData {
     #[prost(message, repeated, tag = "4")]
     pub paired_item: ::prost::alloc::vec::Vec<PairedItemData>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct BinaryData {
     /// Base64 or reference ID
     #[prost(string, tag = "1")]
@@ -162,7 +162,7 @@ pub struct BinaryData {
     #[prost(enumeration = "BinaryFileType", optional, tag = "8")]
     pub file_type: ::core::option::Option<i32>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct PairedItemData {
     #[prost(uint32, tag = "1")]
     pub item: u32,
@@ -171,7 +171,7 @@ pub struct PairedItemData {
     #[prost(string, optional, tag = "3")]
     pub source_overwrite: ::core::option::Option<::prost::alloc::string::String>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct ExecutionError {
     #[prost(string, tag = "1")]
     pub message: ::prost::alloc::string::String,
@@ -266,7 +266,7 @@ pub mod execution_event {
         Error(super::ExecutionError),
     }
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct ExecutionStarted {
     #[prost(string, tag = "1")]
     pub execution_id: ::prost::alloc::string::String,
@@ -275,7 +275,7 @@ pub struct ExecutionStarted {
     #[prost(message, optional, tag = "3")]
     pub started_at: ::core::option::Option<::prost_types::Timestamp>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct NodeStarted {
     #[prost(string, tag = "1")]
     pub node_name: ::prost::alloc::string::String,
@@ -331,14 +331,14 @@ pub mod arrow_input_data {
         Control(super::StreamControl),
     }
 }
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct StreamControl {
     #[prost(oneof = "stream_control::Control", tags = "1, 2, 3")]
     pub control: ::core::option::Option<stream_control::Control>,
 }
 /// Nested message and enum types in `StreamControl`.
 pub mod stream_control {
-    #[derive(Clone, Copy, PartialEq, ::prost::Oneof)]
+    #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Oneof)]
     pub enum Control {
         #[prost(bool, tag = "1")]
         Cancel(bool),
@@ -389,7 +389,7 @@ pub struct CreateWorkflowRequest {
     #[prost(message, optional, tag = "5")]
     pub settings: ::core::option::Option<WorkflowSettings>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct GetWorkflowRequest {
     #[prost(string, tag = "1")]
     pub workflow_id: ::prost::alloc::string::String,
@@ -414,17 +414,17 @@ pub struct UpdateWorkflowRequest {
     #[prost(message, optional, tag = "7")]
     pub settings: ::core::option::Option<WorkflowSettings>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct DeleteWorkflowRequest {
     #[prost(string, tag = "1")]
     pub workflow_id: ::prost::alloc::string::String,
 }
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct DeleteWorkflowResponse {
     #[prost(bool, tag = "1")]
     pub success: bool,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct ListWorkflowsRequest {
     #[prost(uint32, optional, tag = "1")]
     pub limit: ::core::option::Option<u32>,
@@ -478,24 +478,24 @@ pub struct ExecutionResponse {
     #[prost(message, optional, tag = "1")]
     pub result: ::core::option::Option<ExecutionResult>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct GetExecutionRequest {
     #[prost(string, tag = "1")]
     pub execution_id: ::prost::alloc::string::String,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct CancelExecutionRequest {
     #[prost(string, tag = "1")]
     pub execution_id: ::prost::alloc::string::String,
 }
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct CancelExecutionResponse {
     #[prost(bool, tag = "1")]
     pub success: bool,
     #[prost(enumeration = "ExecutionStatus", tag = "2")]
     pub final_status: i32,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct RetryExecutionRequest {
     #[prost(string, tag = "1")]
     pub execution_id: ::prost::alloc::string::String,
@@ -503,7 +503,7 @@ pub struct RetryExecutionRequest {
     #[prost(bool, tag = "2")]
     pub from_failed_node: bool,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct StreamDataRequest {
     #[prost(string, tag = "1")]
     pub execution_id: ::prost::alloc::string::String,
@@ -514,7 +514,7 @@ pub struct StreamDataRequest {
     #[prost(uint32, repeated, tag = "3")]
     pub run_indices: ::prost::alloc::vec::Vec<u32>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct GetNodeOutputRequest {
     #[prost(string, tag = "1")]
     pub execution_id: ::prost::alloc::string::String,
@@ -890,7 +890,7 @@ pub mod workflow_service_client {
     }
     impl<T> WorkflowServiceClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -911,13 +911,13 @@ pub mod workflow_service_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             WorkflowServiceClient::new(InterceptedService::new(inner, interceptor))
@@ -969,7 +969,7 @@ pub mod workflow_service_client {
                         format!("Service was not ready: {}", e.into()),
                     )
                 })?;
-            let codec = tonic::codec::ProstCodec::default();
+            let codec = tonic_prost::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/n8n.WorkflowService/CreateWorkflow",
             );
@@ -993,7 +993,7 @@ pub mod workflow_service_client {
                         format!("Service was not ready: {}", e.into()),
                     )
                 })?;
-            let codec = tonic::codec::ProstCodec::default();
+            let codec = tonic_prost::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/n8n.WorkflowService/GetWorkflow",
             );
@@ -1017,7 +1017,7 @@ pub mod workflow_service_client {
                         format!("Service was not ready: {}", e.into()),
                     )
                 })?;
-            let codec = tonic::codec::ProstCodec::default();
+            let codec = tonic_prost::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/n8n.WorkflowService/UpdateWorkflow",
             );
@@ -1041,7 +1041,7 @@ pub mod workflow_service_client {
                         format!("Service was not ready: {}", e.into()),
                     )
                 })?;
-            let codec = tonic::codec::ProstCodec::default();
+            let codec = tonic_prost::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/n8n.WorkflowService/DeleteWorkflow",
             );
@@ -1065,7 +1065,7 @@ pub mod workflow_service_client {
                         format!("Service was not ready: {}", e.into()),
                     )
                 })?;
-            let codec = tonic::codec::ProstCodec::default();
+            let codec = tonic_prost::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/n8n.WorkflowService/ListWorkflows",
             );
@@ -1090,7 +1090,7 @@ pub mod workflow_service_client {
                         format!("Service was not ready: {}", e.into()),
                     )
                 })?;
-            let codec = tonic::codec::ProstCodec::default();
+            let codec = tonic_prost::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/n8n.WorkflowService/ExecuteWorkflow",
             );
@@ -1114,7 +1114,7 @@ pub mod workflow_service_client {
                         format!("Service was not ready: {}", e.into()),
                     )
                 })?;
-            let codec = tonic::codec::ProstCodec::default();
+            let codec = tonic_prost::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/n8n.WorkflowService/ExecuteWorkflowStream",
             );
@@ -1139,7 +1139,7 @@ pub mod workflow_service_client {
                         format!("Service was not ready: {}", e.into()),
                     )
                 })?;
-            let codec = tonic::codec::ProstCodec::default();
+            let codec = tonic_prost::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/n8n.WorkflowService/GetExecution",
             );
@@ -1163,7 +1163,7 @@ pub mod workflow_service_client {
                         format!("Service was not ready: {}", e.into()),
                     )
                 })?;
-            let codec = tonic::codec::ProstCodec::default();
+            let codec = tonic_prost::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/n8n.WorkflowService/CancelExecution",
             );
@@ -1187,7 +1187,7 @@ pub mod workflow_service_client {
                         format!("Service was not ready: {}", e.into()),
                     )
                 })?;
-            let codec = tonic::codec::ProstCodec::default();
+            let codec = tonic_prost::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/n8n.WorkflowService/RetryExecution",
             );
@@ -1195,470 +1195,6 @@ pub mod workflow_service_client {
             req.extensions_mut()
                 .insert(GrpcMethod::new("n8n.WorkflowService", "RetryExecution"));
             self.inner.unary(req, path, codec).await
-        }
-    }
-}
-/// Generated client implementations.
-pub mod arrow_data_service_client {
-    #![allow(
-        unused_variables,
-        dead_code,
-        missing_docs,
-        clippy::wildcard_imports,
-        clippy::let_unit_value,
-    )]
-    use tonic::codegen::*;
-    use tonic::codegen::http::Uri;
-    #[derive(Debug, Clone)]
-    pub struct ArrowDataServiceClient<T> {
-        inner: tonic::client::Grpc<T>,
-    }
-    impl ArrowDataServiceClient<tonic::transport::Channel> {
-        /// Attempt to create a new client by connecting to a given endpoint.
-        pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
-        where
-            D: TryInto<tonic::transport::Endpoint>,
-            D::Error: Into<StdError>,
-        {
-            let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
-            Ok(Self::new(conn))
-        }
-    }
-    impl<T> ArrowDataServiceClient<T>
-    where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
-        T::Error: Into<StdError>,
-        T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
-        <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
-    {
-        pub fn new(inner: T) -> Self {
-            let inner = tonic::client::Grpc::new(inner);
-            Self { inner }
-        }
-        pub fn with_origin(inner: T, origin: Uri) -> Self {
-            let inner = tonic::client::Grpc::with_origin(inner, origin);
-            Self { inner }
-        }
-        pub fn with_interceptor<F>(
-            inner: T,
-            interceptor: F,
-        ) -> ArrowDataServiceClient<InterceptedService<T, F>>
-        where
-            F: tonic::service::Interceptor,
-            T::ResponseBody: Default,
-            T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
-                Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
-                >,
-            >,
-            <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
-            >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
-        {
-            ArrowDataServiceClient::new(InterceptedService::new(inner, interceptor))
-        }
-        /// Compress requests with the given encoding.
-        ///
-        /// This requires the server to support it otherwise it might respond with an
-        /// error.
-        #[must_use]
-        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
-            self.inner = self.inner.send_compressed(encoding);
-            self
-        }
-        /// Enable decompressing responses.
-        #[must_use]
-        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
-            self.inner = self.inner.accept_compressed(encoding);
-            self
-        }
-        /// Limits the maximum size of a decoded message.
-        ///
-        /// Default: `4MB`
-        #[must_use]
-        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
-            self.inner = self.inner.max_decoding_message_size(limit);
-            self
-        }
-        /// Limits the maximum size of an encoded message.
-        ///
-        /// Default: `usize::MAX`
-        #[must_use]
-        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
-            self.inner = self.inner.max_encoding_message_size(limit);
-            self
-        }
-        /// Stream workflow execution data as Arrow RecordBatches
-        pub async fn stream_execution_data(
-            &mut self,
-            request: impl tonic::IntoRequest<super::StreamDataRequest>,
-        ) -> std::result::Result<
-            tonic::Response<tonic::codec::Streaming<super::ArrowRecordBatch>>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/n8n.ArrowDataService/StreamExecutionData",
-            );
-            let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("n8n.ArrowDataService", "StreamExecutionData"));
-            self.inner.server_streaming(req, path, codec).await
-        }
-        /// Bidirectional streaming for real-time execution
-        pub async fn execute_with_arrow_stream(
-            &mut self,
-            request: impl tonic::IntoStreamingRequest<Message = super::ArrowInputData>,
-        ) -> std::result::Result<
-            tonic::Response<tonic::codec::Streaming<super::ArrowRecordBatch>>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/n8n.ArrowDataService/ExecuteWithArrowStream",
-            );
-            let mut req = request.into_streaming_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("n8n.ArrowDataService", "ExecuteWithArrowStream"),
-                );
-            self.inner.streaming(req, path, codec).await
-        }
-        /// Bulk data transfer for node outputs
-        pub async fn get_node_output_arrow(
-            &mut self,
-            request: impl tonic::IntoRequest<super::GetNodeOutputRequest>,
-        ) -> std::result::Result<
-            tonic::Response<tonic::codec::Streaming<super::ArrowRecordBatch>>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/n8n.ArrowDataService/GetNodeOutputArrow",
-            );
-            let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("n8n.ArrowDataService", "GetNodeOutputArrow"));
-            self.inner.server_streaming(req, path, codec).await
-        }
-        /// Upload data as Arrow format
-        pub async fn put_arrow_data(
-            &mut self,
-            request: impl tonic::IntoStreamingRequest<Message = super::ArrowRecordBatch>,
-        ) -> std::result::Result<
-            tonic::Response<super::PutArrowDataResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/n8n.ArrowDataService/PutArrowData",
-            );
-            let mut req = request.into_streaming_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("n8n.ArrowDataService", "PutArrowData"));
-            self.inner.client_streaming(req, path, codec).await
-        }
-    }
-}
-/// Generated client implementations.
-pub mod hamming_service_client {
-    #![allow(
-        unused_variables,
-        dead_code,
-        missing_docs,
-        clippy::wildcard_imports,
-        clippy::let_unit_value,
-    )]
-    use tonic::codegen::*;
-    use tonic::codegen::http::Uri;
-    #[derive(Debug, Clone)]
-    pub struct HammingServiceClient<T> {
-        inner: tonic::client::Grpc<T>,
-    }
-    impl HammingServiceClient<tonic::transport::Channel> {
-        /// Attempt to create a new client by connecting to a given endpoint.
-        pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
-        where
-            D: TryInto<tonic::transport::Endpoint>,
-            D::Error: Into<StdError>,
-        {
-            let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
-            Ok(Self::new(conn))
-        }
-    }
-    impl<T> HammingServiceClient<T>
-    where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
-        T::Error: Into<StdError>,
-        T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
-        <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
-    {
-        pub fn new(inner: T) -> Self {
-            let inner = tonic::client::Grpc::new(inner);
-            Self { inner }
-        }
-        pub fn with_origin(inner: T, origin: Uri) -> Self {
-            let inner = tonic::client::Grpc::with_origin(inner, origin);
-            Self { inner }
-        }
-        pub fn with_interceptor<F>(
-            inner: T,
-            interceptor: F,
-        ) -> HammingServiceClient<InterceptedService<T, F>>
-        where
-            F: tonic::service::Interceptor,
-            T::ResponseBody: Default,
-            T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
-                Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
-                >,
-            >,
-            <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
-            >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
-        {
-            HammingServiceClient::new(InterceptedService::new(inner, interceptor))
-        }
-        /// Compress requests with the given encoding.
-        ///
-        /// This requires the server to support it otherwise it might respond with an
-        /// error.
-        #[must_use]
-        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
-            self.inner = self.inner.send_compressed(encoding);
-            self
-        }
-        /// Enable decompressing responses.
-        #[must_use]
-        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
-            self.inner = self.inner.accept_compressed(encoding);
-            self
-        }
-        /// Limits the maximum size of a decoded message.
-        ///
-        /// Default: `4MB`
-        #[must_use]
-        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
-            self.inner = self.inner.max_decoding_message_size(limit);
-            self
-        }
-        /// Limits the maximum size of an encoded message.
-        ///
-        /// Default: `usize::MAX`
-        #[must_use]
-        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
-            self.inner = self.inner.max_encoding_message_size(limit);
-            self
-        }
-        /// Create fingerprint from data
-        pub async fn create_fingerprint(
-            &mut self,
-            request: impl tonic::IntoRequest<super::CreateFingerprintRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::FingerprintResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/n8n.HammingService/CreateFingerprint",
-            );
-            let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("n8n.HammingService", "CreateFingerprint"));
-            self.inner.unary(req, path, codec).await
-        }
-        /// Batch create fingerprints
-        pub async fn create_fingerprint_batch(
-            &mut self,
-            request: impl tonic::IntoStreamingRequest<
-                Message = super::CreateFingerprintRequest,
-            >,
-        ) -> std::result::Result<
-            tonic::Response<tonic::codec::Streaming<super::FingerprintResponse>>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/n8n.HammingService/CreateFingerprintBatch",
-            );
-            let mut req = request.into_streaming_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("n8n.HammingService", "CreateFingerprintBatch"));
-            self.inner.streaming(req, path, codec).await
-        }
-        /// Similarity search
-        pub async fn find_similar(
-            &mut self,
-            request: impl tonic::IntoRequest<super::SimilaritySearchRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::SimilaritySearchResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/n8n.HammingService/FindSimilar",
-            );
-            let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("n8n.HammingService", "FindSimilar"));
-            self.inner.unary(req, path, codec).await
-        }
-        /// Bind/unbind operations (XOR-based)
-        pub async fn bind_fingerprints(
-            &mut self,
-            request: impl tonic::IntoRequest<super::BindRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::FingerprintResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/n8n.HammingService/BindFingerprints",
-            );
-            let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("n8n.HammingService", "BindFingerprints"));
-            self.inner.unary(req, path, codec).await
-        }
-        pub async fn unbind_fingerprint(
-            &mut self,
-            request: impl tonic::IntoRequest<super::UnbindRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::FingerprintResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/n8n.HammingService/UnbindFingerprint",
-            );
-            let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("n8n.HammingService", "UnbindFingerprint"));
-            self.inner.unary(req, path, codec).await
-        }
-        /// Distance calculation
-        pub async fn calculate_distance(
-            &mut self,
-            request: impl tonic::IntoRequest<super::DistanceRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::DistanceResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/n8n.HammingService/CalculateDistance",
-            );
-            let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("n8n.HammingService", "CalculateDistance"));
-            self.inner.unary(req, path, codec).await
-        }
-        /// Stream similarity search results
-        pub async fn find_similar_stream(
-            &mut self,
-            request: impl tonic::IntoRequest<super::SimilaritySearchRequest>,
-        ) -> std::result::Result<
-            tonic::Response<tonic::codec::Streaming<super::SimilarityMatch>>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/n8n.HammingService/FindSimilarStream",
-            );
-            let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("n8n.HammingService", "FindSimilarStream"));
-            self.inner.server_streaming(req, path, codec).await
         }
     }
 }
@@ -1820,7 +1356,7 @@ pub mod workflow_service_server {
         B: Body + std::marker::Send + 'static,
         B::Error: Into<StdError> + std::marker::Send + 'static,
     {
-        type Response = http::Response<tonic::body::BoxBody>;
+        type Response = http::Response<tonic::body::Body>;
         type Error = std::convert::Infallible;
         type Future = BoxFuture<Self::Response, Self::Error>;
         fn poll_ready(
@@ -1862,7 +1398,7 @@ pub mod workflow_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = CreateWorkflowSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -1907,7 +1443,7 @@ pub mod workflow_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = GetWorkflowSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -1953,7 +1489,7 @@ pub mod workflow_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = UpdateWorkflowSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -1999,7 +1535,7 @@ pub mod workflow_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = DeleteWorkflowSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -2045,7 +1581,7 @@ pub mod workflow_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = ListWorkflowsSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -2091,7 +1627,7 @@ pub mod workflow_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = ExecuteWorkflowSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -2142,7 +1678,7 @@ pub mod workflow_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = ExecuteWorkflowStreamSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -2187,7 +1723,7 @@ pub mod workflow_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = GetExecutionSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -2233,7 +1769,7 @@ pub mod workflow_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = CancelExecutionSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -2279,7 +1815,7 @@ pub mod workflow_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = RetryExecutionSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -2296,7 +1832,9 @@ pub mod workflow_service_server {
                 }
                 _ => {
                     Box::pin(async move {
-                        let mut response = http::Response::new(empty_body());
+                        let mut response = http::Response::new(
+                            tonic::body::Body::default(),
+                        );
                         let headers = response.headers_mut();
                         headers
                             .insert(
@@ -2330,6 +1868,201 @@ pub mod workflow_service_server {
     pub const SERVICE_NAME: &str = "n8n.WorkflowService";
     impl<T> tonic::server::NamedService for WorkflowServiceServer<T> {
         const NAME: &'static str = SERVICE_NAME;
+    }
+}
+/// Generated client implementations.
+pub mod arrow_data_service_client {
+    #![allow(
+        unused_variables,
+        dead_code,
+        missing_docs,
+        clippy::wildcard_imports,
+        clippy::let_unit_value,
+    )]
+    use tonic::codegen::*;
+    use tonic::codegen::http::Uri;
+    #[derive(Debug, Clone)]
+    pub struct ArrowDataServiceClient<T> {
+        inner: tonic::client::Grpc<T>,
+    }
+    impl ArrowDataServiceClient<tonic::transport::Channel> {
+        /// Attempt to create a new client by connecting to a given endpoint.
+        pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
+        where
+            D: TryInto<tonic::transport::Endpoint>,
+            D::Error: Into<StdError>,
+        {
+            let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
+            Ok(Self::new(conn))
+        }
+    }
+    impl<T> ArrowDataServiceClient<T>
+    where
+        T: tonic::client::GrpcService<tonic::body::Body>,
+        T::Error: Into<StdError>,
+        T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
+        <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
+    {
+        pub fn new(inner: T) -> Self {
+            let inner = tonic::client::Grpc::new(inner);
+            Self { inner }
+        }
+        pub fn with_origin(inner: T, origin: Uri) -> Self {
+            let inner = tonic::client::Grpc::with_origin(inner, origin);
+            Self { inner }
+        }
+        pub fn with_interceptor<F>(
+            inner: T,
+            interceptor: F,
+        ) -> ArrowDataServiceClient<InterceptedService<T, F>>
+        where
+            F: tonic::service::Interceptor,
+            T::ResponseBody: Default,
+            T: tonic::codegen::Service<
+                http::Request<tonic::body::Body>,
+                Response = http::Response<
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
+                >,
+            >,
+            <T as tonic::codegen::Service<
+                http::Request<tonic::body::Body>,
+            >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
+        {
+            ArrowDataServiceClient::new(InterceptedService::new(inner, interceptor))
+        }
+        /// Compress requests with the given encoding.
+        ///
+        /// This requires the server to support it otherwise it might respond with an
+        /// error.
+        #[must_use]
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.send_compressed(encoding);
+            self
+        }
+        /// Enable decompressing responses.
+        #[must_use]
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.accept_compressed(encoding);
+            self
+        }
+        /// Limits the maximum size of a decoded message.
+        ///
+        /// Default: `4MB`
+        #[must_use]
+        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_decoding_message_size(limit);
+            self
+        }
+        /// Limits the maximum size of an encoded message.
+        ///
+        /// Default: `usize::MAX`
+        #[must_use]
+        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_encoding_message_size(limit);
+            self
+        }
+        /// Stream workflow execution data as Arrow RecordBatches
+        pub async fn stream_execution_data(
+            &mut self,
+            request: impl tonic::IntoRequest<super::StreamDataRequest>,
+        ) -> std::result::Result<
+            tonic::Response<tonic::codec::Streaming<super::ArrowRecordBatch>>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/n8n.ArrowDataService/StreamExecutionData",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("n8n.ArrowDataService", "StreamExecutionData"));
+            self.inner.server_streaming(req, path, codec).await
+        }
+        /// Bidirectional streaming for real-time execution
+        pub async fn execute_with_arrow_stream(
+            &mut self,
+            request: impl tonic::IntoStreamingRequest<Message = super::ArrowInputData>,
+        ) -> std::result::Result<
+            tonic::Response<tonic::codec::Streaming<super::ArrowRecordBatch>>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/n8n.ArrowDataService/ExecuteWithArrowStream",
+            );
+            let mut req = request.into_streaming_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("n8n.ArrowDataService", "ExecuteWithArrowStream"),
+                );
+            self.inner.streaming(req, path, codec).await
+        }
+        /// Bulk data transfer for node outputs
+        pub async fn get_node_output_arrow(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetNodeOutputRequest>,
+        ) -> std::result::Result<
+            tonic::Response<tonic::codec::Streaming<super::ArrowRecordBatch>>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/n8n.ArrowDataService/GetNodeOutputArrow",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("n8n.ArrowDataService", "GetNodeOutputArrow"));
+            self.inner.server_streaming(req, path, codec).await
+        }
+        /// Upload data as Arrow format
+        pub async fn put_arrow_data(
+            &mut self,
+            request: impl tonic::IntoStreamingRequest<Message = super::ArrowRecordBatch>,
+        ) -> std::result::Result<
+            tonic::Response<super::PutArrowDataResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/n8n.ArrowDataService/PutArrowData",
+            );
+            let mut req = request.into_streaming_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("n8n.ArrowDataService", "PutArrowData"));
+            self.inner.client_streaming(req, path, codec).await
+        }
     }
 }
 /// Generated server implementations.
@@ -2461,7 +2194,7 @@ pub mod arrow_data_service_server {
         B: Body + std::marker::Send + 'static,
         B::Error: Into<StdError> + std::marker::Send + 'static,
     {
-        type Response = http::Response<tonic::body::BoxBody>;
+        type Response = http::Response<tonic::body::Body>;
         type Error = std::convert::Infallible;
         type Future = BoxFuture<Self::Response, Self::Error>;
         fn poll_ready(
@@ -2507,7 +2240,7 @@ pub mod arrow_data_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = StreamExecutionDataSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -2559,7 +2292,7 @@ pub mod arrow_data_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = ExecuteWithArrowStreamSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -2609,7 +2342,7 @@ pub mod arrow_data_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = GetNodeOutputArrowSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -2657,7 +2390,7 @@ pub mod arrow_data_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = PutArrowDataSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -2674,7 +2407,9 @@ pub mod arrow_data_service_server {
                 }
                 _ => {
                     Box::pin(async move {
-                        let mut response = http::Response::new(empty_body());
+                        let mut response = http::Response::new(
+                            tonic::body::Body::default(),
+                        );
                         let headers = response.headers_mut();
                         headers
                             .insert(
@@ -2708,6 +2443,275 @@ pub mod arrow_data_service_server {
     pub const SERVICE_NAME: &str = "n8n.ArrowDataService";
     impl<T> tonic::server::NamedService for ArrowDataServiceServer<T> {
         const NAME: &'static str = SERVICE_NAME;
+    }
+}
+/// Generated client implementations.
+pub mod hamming_service_client {
+    #![allow(
+        unused_variables,
+        dead_code,
+        missing_docs,
+        clippy::wildcard_imports,
+        clippy::let_unit_value,
+    )]
+    use tonic::codegen::*;
+    use tonic::codegen::http::Uri;
+    #[derive(Debug, Clone)]
+    pub struct HammingServiceClient<T> {
+        inner: tonic::client::Grpc<T>,
+    }
+    impl HammingServiceClient<tonic::transport::Channel> {
+        /// Attempt to create a new client by connecting to a given endpoint.
+        pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
+        where
+            D: TryInto<tonic::transport::Endpoint>,
+            D::Error: Into<StdError>,
+        {
+            let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
+            Ok(Self::new(conn))
+        }
+    }
+    impl<T> HammingServiceClient<T>
+    where
+        T: tonic::client::GrpcService<tonic::body::Body>,
+        T::Error: Into<StdError>,
+        T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
+        <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
+    {
+        pub fn new(inner: T) -> Self {
+            let inner = tonic::client::Grpc::new(inner);
+            Self { inner }
+        }
+        pub fn with_origin(inner: T, origin: Uri) -> Self {
+            let inner = tonic::client::Grpc::with_origin(inner, origin);
+            Self { inner }
+        }
+        pub fn with_interceptor<F>(
+            inner: T,
+            interceptor: F,
+        ) -> HammingServiceClient<InterceptedService<T, F>>
+        where
+            F: tonic::service::Interceptor,
+            T::ResponseBody: Default,
+            T: tonic::codegen::Service<
+                http::Request<tonic::body::Body>,
+                Response = http::Response<
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
+                >,
+            >,
+            <T as tonic::codegen::Service<
+                http::Request<tonic::body::Body>,
+            >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
+        {
+            HammingServiceClient::new(InterceptedService::new(inner, interceptor))
+        }
+        /// Compress requests with the given encoding.
+        ///
+        /// This requires the server to support it otherwise it might respond with an
+        /// error.
+        #[must_use]
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.send_compressed(encoding);
+            self
+        }
+        /// Enable decompressing responses.
+        #[must_use]
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.accept_compressed(encoding);
+            self
+        }
+        /// Limits the maximum size of a decoded message.
+        ///
+        /// Default: `4MB`
+        #[must_use]
+        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_decoding_message_size(limit);
+            self
+        }
+        /// Limits the maximum size of an encoded message.
+        ///
+        /// Default: `usize::MAX`
+        #[must_use]
+        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_encoding_message_size(limit);
+            self
+        }
+        /// Create fingerprint from data
+        pub async fn create_fingerprint(
+            &mut self,
+            request: impl tonic::IntoRequest<super::CreateFingerprintRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::FingerprintResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/n8n.HammingService/CreateFingerprint",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("n8n.HammingService", "CreateFingerprint"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Batch create fingerprints
+        pub async fn create_fingerprint_batch(
+            &mut self,
+            request: impl tonic::IntoStreamingRequest<
+                Message = super::CreateFingerprintRequest,
+            >,
+        ) -> std::result::Result<
+            tonic::Response<tonic::codec::Streaming<super::FingerprintResponse>>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/n8n.HammingService/CreateFingerprintBatch",
+            );
+            let mut req = request.into_streaming_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("n8n.HammingService", "CreateFingerprintBatch"));
+            self.inner.streaming(req, path, codec).await
+        }
+        /// Similarity search
+        pub async fn find_similar(
+            &mut self,
+            request: impl tonic::IntoRequest<super::SimilaritySearchRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::SimilaritySearchResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/n8n.HammingService/FindSimilar",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("n8n.HammingService", "FindSimilar"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Bind/unbind operations (XOR-based)
+        pub async fn bind_fingerprints(
+            &mut self,
+            request: impl tonic::IntoRequest<super::BindRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::FingerprintResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/n8n.HammingService/BindFingerprints",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("n8n.HammingService", "BindFingerprints"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn unbind_fingerprint(
+            &mut self,
+            request: impl tonic::IntoRequest<super::UnbindRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::FingerprintResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/n8n.HammingService/UnbindFingerprint",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("n8n.HammingService", "UnbindFingerprint"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Distance calculation
+        pub async fn calculate_distance(
+            &mut self,
+            request: impl tonic::IntoRequest<super::DistanceRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::DistanceResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/n8n.HammingService/CalculateDistance",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("n8n.HammingService", "CalculateDistance"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Stream similarity search results
+        pub async fn find_similar_stream(
+            &mut self,
+            request: impl tonic::IntoRequest<super::SimilaritySearchRequest>,
+        ) -> std::result::Result<
+            tonic::Response<tonic::codec::Streaming<super::SimilarityMatch>>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/n8n.HammingService/FindSimilarStream",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("n8n.HammingService", "FindSimilarStream"));
+            self.inner.server_streaming(req, path, codec).await
+        }
     }
 }
 /// Generated server implementations.
@@ -2856,7 +2860,7 @@ pub mod hamming_service_server {
         B: Body + std::marker::Send + 'static,
         B::Error: Into<StdError> + std::marker::Send + 'static,
     {
-        type Response = http::Response<tonic::body::BoxBody>;
+        type Response = http::Response<tonic::body::Body>;
         type Error = std::convert::Infallible;
         type Future = BoxFuture<Self::Response, Self::Error>;
         fn poll_ready(
@@ -2898,7 +2902,7 @@ pub mod hamming_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = CreateFingerprintSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -2950,7 +2954,7 @@ pub mod hamming_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = CreateFingerprintBatchSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -2995,7 +2999,7 @@ pub mod hamming_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = FindSimilarSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -3041,7 +3045,7 @@ pub mod hamming_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = BindFingerprintsSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -3087,7 +3091,7 @@ pub mod hamming_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = UnbindFingerprintSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -3133,7 +3137,7 @@ pub mod hamming_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = CalculateDistanceSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -3181,7 +3185,7 @@ pub mod hamming_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = FindSimilarStreamSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -3198,7 +3202,9 @@ pub mod hamming_service_server {
                 }
                 _ => {
                     Box::pin(async move {
-                        let mut response = http::Response::new(empty_body());
+                        let mut response = http::Response::new(
+                            tonic::body::Body::default(),
+                        );
                         let headers = response.headers_mut();
                         headers
                             .insert(
