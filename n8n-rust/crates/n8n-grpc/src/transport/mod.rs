@@ -66,10 +66,12 @@
 //! }
 //! ```
 
+pub mod api;
 pub mod negotiate;
 pub mod rest;
 pub mod stdio;
 
+pub use api::*;
 pub use negotiate::*;
 pub use rest::*;
 pub use stdio::*;

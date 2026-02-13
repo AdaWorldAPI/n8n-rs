@@ -92,7 +92,7 @@ impl IntoResponse for NegotiatedResponse {
 /// API error response.
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ApiError {
+pub struct NegotiatedApiError {
     pub error: String,
     pub code: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -115,7 +115,7 @@ pub struct FormatHint {
     pub upgrade_endpoint: Option<String>,
 }
 
-impl IntoResponse for ApiError {
+impl IntoResponse for NegotiatedApiError {
     fn into_response(self) -> Response {
         let status = match self.code.as_str() {
             "NOT_FOUND" => StatusCode::NOT_FOUND,

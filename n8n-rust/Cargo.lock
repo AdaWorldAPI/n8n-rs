@@ -2497,6 +2497,7 @@ dependencies = [
  "async-trait",
  "axum",
  "bytes",
+ "chrono",
  "futures",
  "n8n-arrow",
  "n8n-core",
