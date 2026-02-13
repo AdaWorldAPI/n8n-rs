@@ -12,6 +12,7 @@
 pub mod engine;
 pub mod error;
 pub mod executor;
+pub mod expression;
 pub mod node_types;
 pub mod runtime;
 pub mod storage;
@@ -19,4 +20,8 @@ pub mod storage;
 pub use engine::*;
 pub use error::*;
 pub use executor::*;
+pub use expression::{
+    ExpressionContext, ExpressionError, ExpressionEvaluator, ExpressionResult,
+    parse, parse_template, resolve_parameter,
+};
 pub use runtime::*;

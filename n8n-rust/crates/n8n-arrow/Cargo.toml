@@ -26,3 +26,5 @@ bytes = { workspace = true }
 futures = { workspace = true }
 async-trait = { workspace = true }
 tracing = { workspace = true }
+tonic = { workspace = true }
+async-stream = "0.3"
