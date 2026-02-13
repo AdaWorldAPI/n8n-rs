@@ -32,6 +32,9 @@ sha2 = "0.10"
 md5 = "0.7"
 rand = "0.8"
 
+# HTTP client
+reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false }
+
 # Credential encryption
 aes-gcm = "0.10"
 pbkdf2 = "0.12"

@@ -96,11 +96,17 @@ impl NodeExecutor for ManualTriggerExecutor {
     async fn execute(
         &self,
         _node: &Node,
-        _input: &TaskDataConnections,
+        input: &TaskDataConnections,
         _context: &RuntimeContext,
     ) -> Result<NodeOutput, ExecutionEngineError> {
-        // Manual trigger just passes through an empty item
-        Ok(vec![vec![NodeExecutionData::default()]])
+        // Pass through input items if provided, otherwise emit a single empty item
+        let items = input
+            .get("main")
+            .and_then(|v| v.first())
+            .filter(|items| !items.is_empty())
+            .cloned()
+            .unwrap_or_else(|| vec![NodeExecutionData::default()]);
+        Ok(vec![items])
     }
 }
 
@@ -422,8 +428,311 @@ impl NodeExecutor for NoOpExecutor {
     }
 }
 
-/// HTTP Request node (placeholder).
+/// HTTP Request node - makes real HTTP requests using reqwest.
 pub struct HttpRequestExecutor;
+
+impl HttpRequestExecutor {
+    /// Extract a string parameter from node parameters with a default.
+    fn get_string_param<'a>(node: &'a Node, key: &str, default: &'a str) -> String {
+        node.parameters
+            .get(key)
+            .and_then(|v| {
+                if let n8n_workflow::NodeParameterValue::String(s) = v {
+                    Some(s.clone())
+                } else {
+                    None
+                }
+            })
+            .unwrap_or_else(|| default.to_string())
+    }
+
+    /// Extract a number parameter from node parameters with a default.
+    fn get_number_param(node: &Node, key: &str, default: f64) -> f64 {
+        node.parameters
+            .get(key)
+            .and_then(|v| {
+                if let n8n_workflow::NodeParameterValue::Number(n) = v {
+                    Some(*n)
+                } else {
+                    None
+                }
+            })
+            .unwrap_or(default)
+    }
+
+    /// Convert a serde_json::Value into a GenericValue.
+    fn json_to_generic(value: serde_json::Value) -> n8n_workflow::GenericValue {
+        match value {
+            serde_json::Value::Null => n8n_workflow::GenericValue::Null,
+            serde_json::Value::Bool(b) => n8n_workflow::GenericValue::Bool(b),
+            serde_json::Value::Number(n) => {
+                if let Some(i) = n.as_i64() {
+                    n8n_workflow::GenericValue::Integer(i)
+                } else if let Some(f) = n.as_f64() {
+                    n8n_workflow::GenericValue::Float(f)
+                } else {
+                    n8n_workflow::GenericValue::Null
+                }
+            }
+            serde_json::Value::String(s) => n8n_workflow::GenericValue::String(s),
+            serde_json::Value::Array(arr) => {
+                n8n_workflow::GenericValue::Array(arr.into_iter().map(Self::json_to_generic).collect())
+            }
+            serde_json::Value::Object(obj) => {
+                let map: DataObject = obj
+                    .into_iter()
+                    .map(|(k, v)| (k, Self::json_to_generic(v)))
+                    .collect();
+                n8n_workflow::GenericValue::Object(map)
+            }
+        }
+    }
+
+    /// Build a reqwest::Client with the configured timeout.
+    fn build_client(timeout_ms: u64) -> Result<reqwest::Client, ExecutionEngineError> {
+        reqwest::Client::builder()
+            .timeout(std::time::Duration::from_millis(timeout_ms))
+            .build()
+            .map_err(|e| ExecutionEngineError::Internal(format!("Failed to build HTTP client: {}", e)))
+    }
+
+    /// Build the request from node parameters.
+    fn build_request(
+        client: &reqwest::Client,
+        node: &Node,
+    ) -> Result<reqwest::RequestBuilder, ExecutionEngineError> {
+        let url = Self::get_string_param(node, "url", "");
+        if url.is_empty() {
+            return Err(ExecutionEngineError::NodeExecution {
+                node: node.name.clone(),
+                message: "URL parameter is required for HTTP Request node".to_string(),
+            });
+        }
+
+        let method_str = Self::get_string_param(node, "method", "GET").to_uppercase();
+        let method = match method_str.as_str() {
+            "GET" => reqwest::Method::GET,
+            "POST" => reqwest::Method::POST,
+            "PUT" => reqwest::Method::PUT,
+            "PATCH" => reqwest::Method::PATCH,
+            "DELETE" => reqwest::Method::DELETE,
+            "HEAD" => reqwest::Method::HEAD,
+            "OPTIONS" => reqwest::Method::OPTIONS,
+            other => {
+                return Err(ExecutionEngineError::NodeExecution {
+                    node: node.name.clone(),
+                    message: format!("Unsupported HTTP method: {}", other),
+                });
+            }
+        };
+
+        let mut request = client.request(method.clone(), &url);
+
+        // Apply request headers
+        if let Some(n8n_workflow::NodeParameterValue::Object(headers)) = node.parameters.get("headers") {
+            for (key, val) in headers {
+                if let n8n_workflow::NodeParameterValue::String(v) = val {
+                    request = request.header(key.as_str(), v.as_str());
+                }
+            }
+        }
+
+        // Apply request body for methods that support it
+        if matches!(method, reqwest::Method::POST | reqwest::Method::PUT | reqwest::Method::PATCH) {
+            if let Some(body_param) = node.parameters.get("body") {
+                match body_param {
+                    n8n_workflow::NodeParameterValue::String(s) => {
+                        // If no Content-Type header was set, try to detect JSON
+                        let has_content_type = node
+                            .parameters
+                            .get("headers")
+                            .and_then(|h| {
+                                if let n8n_workflow::NodeParameterValue::Object(map) = h {
+                                    map.keys().any(|k| k.to_lowercase() == "content-type").then_some(true)
+                                } else {
+                                    None
+                                }
+                            })
+                            .is_some();
+
+                        if !has_content_type {
+                            // Auto-detect: if body looks like JSON, set content-type
+                            let trimmed = s.trim();
+                            if (trimmed.starts_with('{') && trimmed.ends_with('}'))
+                                || (trimmed.starts_with('[') && trimmed.ends_with(']'))
+                            {
+                                request = request.header("Content-Type", "application/json");
+                            }
+                        }
+                        request = request.body(s.clone());
+                    }
+                    n8n_workflow::NodeParameterValue::Object(map) => {
+                        // Convert NodeParameterValue::Object to serde_json::Value for JSON body
+                        let json_val = Self::param_object_to_json(map);
+                        request = request.json(&json_val);
+                    }
+                    _ => {}
+                }
+            }
+        }
+
+        Ok(request)
+    }
+
+    /// Convert a NodeParameterValue Object map to serde_json::Value.
+    fn param_object_to_json(
+        map: &HashMap<String, n8n_workflow::NodeParameterValue>,
+    ) -> serde_json::Value {
+        let obj: serde_json::Map<String, serde_json::Value> = map
+            .iter()
+            .map(|(k, v)| (k.clone(), Self::param_value_to_json(v)))
+            .collect();
+        serde_json::Value::Object(obj)
+    }
+
+    /// Convert a single NodeParameterValue to serde_json::Value.
+    fn param_value_to_json(val: &n8n_workflow::NodeParameterValue) -> serde_json::Value {
+        match val {
+            n8n_workflow::NodeParameterValue::String(s) => serde_json::Value::String(s.clone()),
+            n8n_workflow::NodeParameterValue::Number(n) => {
+                serde_json::Value::Number(serde_json::Number::from_f64(*n).unwrap_or_else(|| serde_json::Number::from(0)))
+            }
+            n8n_workflow::NodeParameterValue::Boolean(b) => serde_json::Value::Bool(*b),
+            n8n_workflow::NodeParameterValue::Array(arr) => {
+                serde_json::Value::Array(arr.iter().map(Self::param_value_to_json).collect())
+            }
+            n8n_workflow::NodeParameterValue::Object(map) => Self::param_object_to_json(map),
+            n8n_workflow::NodeParameterValue::Expression(s) => serde_json::Value::String(s.clone()),
+        }
+    }
+
+    /// Check whether the fullResponse option is enabled.
+    fn is_full_response(node: &Node) -> bool {
+        // Check in options.fullResponse or options.response.fullResponse
+        if let Some(n8n_workflow::NodeParameterValue::Object(options)) = node.parameters.get("options") {
+            if let Some(n8n_workflow::NodeParameterValue::Boolean(full)) = options.get("fullResponse") {
+                return *full;
+            }
+            // n8n also nests under response sub-object
+            if let Some(n8n_workflow::NodeParameterValue::Object(resp_opts)) = options.get("response") {
+                if let Some(n8n_workflow::NodeParameterValue::Boolean(full)) = resp_opts.get("fullResponse") {
+                    return *full;
+                }
+            }
+        }
+        false
+    }
+
+    /// Process the HTTP response into a DataObject.
+    async fn process_response(
+        node: &Node,
+        response: reqwest::Response,
+    ) -> Result<DataObject, ExecutionEngineError> {
+        let status_code = response.status().as_u16() as i64;
+        let full_response = Self::is_full_response(node);
+
+        // Collect response headers
+        let mut resp_headers = DataObject::new();
+        for (name, value) in response.headers().iter() {
+            if let Ok(v) = value.to_str() {
+                resp_headers.insert(
+                    name.as_str().to_string(),
+                    n8n_workflow::GenericValue::String(v.to_string()),
+                );
+            }
+        }
+
+        let response_format = Self::get_string_param(node, "responseFormat", "autodetect");
+
+        // Determine how to parse the response body
+        let content_type = response
+            .headers()
+            .get("content-type")
+            .and_then(|v| v.to_str().ok())
+            .unwrap_or("")
+            .to_lowercase();
+
+        let body_value = match response_format.as_str() {
+            "json" => {
+                // Force parse as JSON
+                let text = response.text().await.map_err(|e| {
+                    ExecutionEngineError::NodeExecution {
+                        node: node.name.clone(),
+                        message: format!("Failed to read response body: {}", e),
+                    }
+                })?;
+                match serde_json::from_str::<serde_json::Value>(&text) {
+                    Ok(json_val) => Self::json_to_generic(json_val),
+                    Err(_) => {
+                        // If JSON parsing fails, return as string
+                        n8n_workflow::GenericValue::String(text)
+                    }
+                }
+            }
+            "text" => {
+                let text = response.text().await.map_err(|e| {
+                    ExecutionEngineError::NodeExecution {
+                        node: node.name.clone(),
+                        message: format!("Failed to read response body: {}", e),
+                    }
+                })?;
+                n8n_workflow::GenericValue::String(text)
+            }
+            _ => {
+                // "autodetect" or unspecified - detect from Content-Type
+                let text = response.text().await.map_err(|e| {
+                    ExecutionEngineError::NodeExecution {
+                        node: node.name.clone(),
+                        message: format!("Failed to read response body: {}", e),
+                    }
+                })?;
+                if content_type.contains("application/json") || content_type.contains("+json") {
+                    match serde_json::from_str::<serde_json::Value>(&text) {
+                        Ok(json_val) => Self::json_to_generic(json_val),
+                        Err(_) => n8n_workflow::GenericValue::String(text),
+                    }
+                } else {
+                    n8n_workflow::GenericValue::String(text)
+                }
+            }
+        };
+
+        let mut result = DataObject::new();
+
+        if full_response {
+            // Full response mode: include statusCode, headers, body
+            result.insert(
+                "statusCode".to_string(),
+                n8n_workflow::GenericValue::Integer(status_code),
+            );
+            result.insert(
+                "headers".to_string(),
+                n8n_workflow::GenericValue::Object(resp_headers),
+            );
+            result.insert("body".to_string(), body_value);
+        } else {
+            // Default mode: merge body into the result directly if it's an object,
+            // otherwise put it in a "data" field
+            match body_value {
+                n8n_workflow::GenericValue::Object(obj) => {
+                    for (k, v) in obj {
+                        result.insert(k, v);
+                    }
+                }
+                other => {
+                    result.insert("data".to_string(), other);
+                }
+            }
+            // Always include statusCode at the top level for convenience
+            result.insert(
+                "statusCode".to_string(),
+                n8n_workflow::GenericValue::Integer(status_code),
+            );
+        }
+
+        Ok(result)
+    }
+}
 
 #[async_trait]
 impl NodeExecutor for HttpRequestExecutor {
@@ -433,26 +742,91 @@ impl NodeExecutor for HttpRequestExecutor {
 
     async fn execute(
         &self,
-        _node: &Node,
+        node: &Node,
         input: &TaskDataConnections,
         context: &RuntimeContext,
     ) -> Result<NodeOutput, ExecutionEngineError> {
         let main_input = input.get("main").and_then(|v| v.first());
         let items = main_input.cloned().unwrap_or_else(|| vec![NodeExecutionData::default()]);
 
-        let mut output = Vec::new();
+        // Extract timeout (default 10000ms = 10 seconds)
+        let timeout_ms = Self::get_number_param(node, "timeout", 10000.0) as u64;
 
-        for _item in items {
-            // Check for cancellation
+        // Build a shared client for all items in this execution
+        let client = Self::build_client(timeout_ms)?;
+
+        let mut output = Vec::new();
+        let cancel_token = context.cancellation_token();
+
+        for (_idx, _item) in items.iter().enumerate() {
+            // Check for cancellation before each request
             if context.is_canceled() {
                 return Err(ExecutionEngineError::Canceled);
             }
 
-            // Placeholder - in real implementation, make HTTP request
-            let mut result = DataObject::new();
-            result.insert("status".to_string(), 200i64.into());
-            result.insert("body".to_string(), "{}".into());
+            // Build the request
+            let request = Self::build_request(&client, node)?;
 
+            // Execute the request with cancellation support
+            let response = tokio::select! {
+                result = request.send() => {
+                    result.map_err(|e| {
+                        if e.is_timeout() {
+                            ExecutionEngineError::NodeExecution {
+                                node: node.name.clone(),
+                                message: format!("HTTP request timed out after {}ms", timeout_ms),
+                            }
+                        } else if e.is_connect() {
+                            ExecutionEngineError::NodeExecution {
+                                node: node.name.clone(),
+                                message: format!("Failed to connect: {}", e),
+                            }
+                        } else {
+                            ExecutionEngineError::NodeExecution {
+                                node: node.name.clone(),
+                                message: format!("HTTP request failed: {}", e),
+                            }
+                        }
+                    })?
+                }
+                _ = cancel_token.cancelled() => {
+                    return Err(ExecutionEngineError::Canceled);
+                }
+            };
+
+            // Check for HTTP error status codes (4xx/5xx) - log but don't fail
+            // n8n by default does not error on non-2xx unless configured to do so
+            let should_error_on_status = node
+                .parameters
+                .get("options")
+                .and_then(|v| {
+                    if let n8n_workflow::NodeParameterValue::Object(opts) = v {
+                        opts.get("neverError").and_then(|ne| {
+                            if let n8n_workflow::NodeParameterValue::Boolean(b) = ne {
+                                Some(*b)
+                            } else {
+                                None
+                            }
+                        })
+                    } else {
+                        None
+                    }
+                })
+                // By default, n8n does NOT throw on non-2xx (neverError = true behavior)
+                .unwrap_or(true);
+
+            let status = response.status();
+            if !should_error_on_status && status.is_client_error() || status.is_server_error() {
+                if !should_error_on_status {
+                    return Err(ExecutionEngineError::NodeExecution {
+                        node: node.name.clone(),
+                        message: format!("HTTP request returned status {}", status.as_u16()),
+                    });
+                }
+            }
+
+            // Process the response
+            let result = Self::process_response(node, response).await?;
             output.push(NodeExecutionData::new(result));
         }
 

@@ -41,6 +41,7 @@
 pub mod entities;
 pub mod error;
 pub mod repositories;
+pub mod storage;
 
 // Re-export entity types explicitly to avoid ambiguous glob re-exports
 // (entities and repositories have submodules with the same names).
@@ -70,6 +71,9 @@ pub use entities::{
 };
 
 pub use error::*;
+
+// Re-export storage bridge types.
+pub use storage::{SqlxExecutionStorage, SqlxWorkflowStorage};
 
 // Re-export repository types explicitly.
 pub use repositories::{
