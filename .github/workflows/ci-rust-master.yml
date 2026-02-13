@@ -1,0 +1,117 @@
+name: "CI: Master — Rust (Build, Test, Lint)"
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "n8n-rust/**"
+      - ".github/workflows/ci-rust-master.yml"
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: -D warnings
+  CARGO_INCREMENTAL: 0
+
+jobs:
+  build:
+    name: Build (Rust workspace)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: n8n-rust
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - name: Cache cargo registry + build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            n8n-rust/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('n8n-rust/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Install protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          version: "27.x"
+
+      - name: Cargo build (all crates)
+        run: cargo build --workspace --all-targets
+
+  test:
+    name: Test
+    needs: build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: n8n-rust
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            n8n-rust/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('n8n-rust/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - uses: arduino/setup-protoc@v3
+        with:
+          version: "27.x"
+
+      - name: Cargo test (workspace)
+        run: cargo test --workspace --all-targets
+
+      - name: Cargo doc tests
+        run: cargo test --workspace --doc
+
+  lint:
+    name: Lint
+    needs: build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: n8n-rust
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            n8n-rust/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('n8n-rust/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - uses: arduino/setup-protoc@v3
+        with:
+          version: "27.x"
+
+      - name: Clippy (all targets)
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: Rustfmt check
+        run: cargo fmt --all -- --check
+
+      - name: Check for unused dependencies
+        run: |
+          cargo install cargo-machete --locked 2>/dev/null || true
+          cargo machete || true
