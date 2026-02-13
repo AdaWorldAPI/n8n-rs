@@ -52,6 +52,10 @@ impl ProjectRepository {
 
     /// Create a new project.
     pub async fn create(&self, project: &Project) -> Result<Project, DbError> {
+        let icon_json = project.icon.as_ref()
+            .map(|i| serde_json::to_value(i))
+            .transpose()?;
+
         let created = sqlx::query_as::<_, Project>(
             r#"
             INSERT INTO project (id, name, type, icon, description, creator_id)
@@ -62,7 +66,7 @@ impl ProjectRepository {
         .bind(&project.id)
         .bind(&project.name)
         .bind(&project.project_type)
-        .bind(&project.icon)
+        .bind(&icon_json)
         .bind(&project.description)
         .bind(project.creator_id)
         .fetch_one(&self.pool)

@@ -12,7 +12,7 @@
 use n8n_grpc::{
     ArrowDataService, HammingGrpcService, WorkflowGrpcService, WorkflowServiceState,
     TransportConfig, TransportManager, FormatNegotiator, RestState, create_router,
-    TransportCapabilities,
+    TransportCapabilities, create_api_router, ApiState, ExecutionStore,
 };
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -54,11 +54,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // REST API
     if config.rest_enabled {
         let rest_addr: SocketAddr = config.rest_addr.parse()?;
-        let rest_state = RestState {
-            service: state.clone(),
-            negotiator: negotiator.clone(),
-        };
-        let router = create_router(rest_state);
+
+        // Create the base negotiation router
+        let negotiation_router = create_router(negotiator.clone());
+
+        // Create the n8n-compatible API state and router
+        let execution_store = Arc::new(ExecutionStore::new());
+        let api_state = ApiState::new(state.workflows.clone(), execution_store);
+        let api_router = create_api_router(api_state);
+
+        // Merge routers: API endpoints + negotiation endpoints
+        let router = api_router.merge(negotiation_router);
 
         info!("Starting REST API on http://{}", rest_addr);
         let handle = tokio::spawn(async move {
@@ -166,9 +172,25 @@ fn print_endpoints(config: &TransportConfig) {
     info!("Available endpoints:");
     if config.rest_enabled {
         info!("  REST:    http://{}", config.rest_addr);
-        info!("           GET  /api/v1/capabilities");
-        info!("           POST /api/v1/negotiate");
-        info!("           POST /api/v1/format/switch");
+        info!("           Workflows:");
+        info!("             GET    /api/v1/workflows");
+        info!("             POST   /api/v1/workflows");
+        info!("             GET    /api/v1/workflows/:id");
+        info!("             PUT    /api/v1/workflows/:id");
+        info!("             DELETE /api/v1/workflows/:id");
+        info!("             POST   /api/v1/workflows/:id/activate");
+        info!("             POST   /api/v1/workflows/:id/deactivate");
+        info!("           Executions:");
+        info!("             GET    /api/v1/executions");
+        info!("             POST   /api/v1/executions");
+        info!("             GET    /api/v1/executions/:id");
+        info!("             DELETE /api/v1/executions/:id");
+        info!("             POST   /api/v1/executions/:id/stop");
+        info!("             POST   /api/v1/executions/:id/retry");
+        info!("           Negotiation:");
+        info!("             GET    /api/v1/capabilities");
+        info!("             POST   /api/v1/negotiate");
+        info!("             POST   /api/v1/format/switch");
     }
     if config.grpc_enabled {
         info!("  gRPC:    grpc://{}", config.grpc_addr);

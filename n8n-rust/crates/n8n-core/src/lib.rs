@@ -9,6 +9,7 @@
 //! - Partial execution (test specific nodes)
 //! - Error handling and retry logic
 
+pub mod credentials;
 pub mod engine;
 pub mod error;
 pub mod executor;
@@ -17,6 +18,7 @@ pub mod node_types;
 pub mod runtime;
 pub mod storage;
 
+pub use credentials::{CredentialError, CredentialService, DecryptedCredentialData};
 pub use engine::*;
 pub use error::*;
 pub use executor::*;
@@ -25,3 +27,6 @@ pub use expression::{
     parse, parse_template, resolve_parameter,
 };
 pub use runtime::*;
+pub use storage::{
+    ExecutionStorage, WorkflowStorage, MemoryExecutionStorage, MemoryWorkflowStorage,
+};

@@ -3,6 +3,7 @@
 use crate::error::ExecutionEngineError;
 use crate::runtime::RuntimeContext;
 use async_trait::async_trait;
+use chrono::Utc;
 use n8n_workflow::{DataObject, Node, NodeExecutionData, TaskDataConnections};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -38,6 +39,8 @@ impl NodeExecutorRegistry {
 
         // Register built-in executors
         registry.register(Arc::new(ManualTriggerExecutor));
+        registry.register(Arc::new(ScheduleTriggerExecutor));
+        registry.register(Arc::new(WebhookTriggerExecutor));
         registry.register(Arc::new(SetExecutor));
         registry.register(Arc::new(CodeExecutor));
         registry.register(Arc::new(IfExecutor));
@@ -99,6 +102,168 @@ impl NodeExecutor for ManualTriggerExecutor {
     ) -> Result<NodeOutput, ExecutionEngineError> {
         // Manual trigger just passes through an empty item
         Ok(vec![vec![NodeExecutionData::default()]])
+    }
+}
+
+/// Schedule trigger node - triggers workflow on a schedule (cron).
+///
+/// When executed within a workflow context, this provides the trigger data
+/// that was captured when the schedule fired.
+pub struct ScheduleTriggerExecutor;
+
+#[async_trait]
+impl NodeExecutor for ScheduleTriggerExecutor {
+    fn node_type(&self) -> &str {
+        "n8n-nodes-base.scheduleTrigger"
+    }
+
+    async fn execute(
+        &self,
+        node: &Node,
+        _input: &TaskDataConnections,
+        _context: &RuntimeContext,
+    ) -> Result<NodeOutput, ExecutionEngineError> {
+        // Extract schedule info from node parameters
+        let cron_expression = node
+            .parameters
+            .get("cronExpression")
+            .and_then(|v| {
+                if let n8n_workflow::NodeParameterValue::String(s) = v {
+                    Some(s.clone())
+                } else {
+                    None
+                }
+            });
+
+        // Create trigger output with schedule metadata
+        let mut trigger_data = DataObject::new();
+        trigger_data.insert(
+            "timestamp".to_string(),
+            n8n_workflow::GenericValue::Integer(chrono::Utc::now().timestamp_millis()),
+        );
+        trigger_data.insert(
+            "timezone".to_string(),
+            n8n_workflow::GenericValue::String("UTC".to_string()),
+        );
+
+        if let Some(cron) = cron_expression {
+            trigger_data.insert(
+                "cronExpression".to_string(),
+                n8n_workflow::GenericValue::String(cron),
+            );
+        }
+
+        // Add date/time components
+        let now = chrono::Utc::now();
+        trigger_data.insert(
+            "date".to_string(),
+            n8n_workflow::GenericValue::String(now.format("%Y-%m-%d").to_string()),
+        );
+        trigger_data.insert(
+            "time".to_string(),
+            n8n_workflow::GenericValue::String(now.format("%H:%M:%S").to_string()),
+        );
+        trigger_data.insert(
+            "dayOfWeek".to_string(),
+            n8n_workflow::GenericValue::Integer(now.format("%u").to_string().parse().unwrap_or(1)),
+        );
+        trigger_data.insert(
+            "hour".to_string(),
+            n8n_workflow::GenericValue::Integer(now.format("%H").to_string().parse().unwrap_or(0)),
+        );
+        trigger_data.insert(
+            "minute".to_string(),
+            n8n_workflow::GenericValue::Integer(now.format("%M").to_string().parse().unwrap_or(0)),
+        );
+
+        Ok(vec![vec![NodeExecutionData::new(trigger_data)]])
+    }
+}
+
+/// Webhook trigger node - triggers workflow when HTTP request is received.
+///
+/// When executed within a workflow context, this provides the request data
+/// that was captured when the webhook was called.
+pub struct WebhookTriggerExecutor;
+
+#[async_trait]
+impl NodeExecutor for WebhookTriggerExecutor {
+    fn node_type(&self) -> &str {
+        "n8n-nodes-base.webhook"
+    }
+
+    async fn execute(
+        &self,
+        node: &Node,
+        input: &TaskDataConnections,
+        _context: &RuntimeContext,
+    ) -> Result<NodeOutput, ExecutionEngineError> {
+        // Check if webhook data was provided in input (from webhook handler)
+        if let Some(main_input) = input.get("main").and_then(|v| v.first()) {
+            if !main_input.is_empty() {
+                // Webhook data was provided by the webhook handler
+                return Ok(vec![main_input.clone()]);
+            }
+        }
+
+        // No webhook data provided - this is a manual trigger or test
+        // Create default webhook data structure
+        let http_method = node
+            .parameters
+            .get("httpMethod")
+            .and_then(|v| {
+                if let n8n_workflow::NodeParameterValue::String(s) = v {
+                    Some(s.clone())
+                } else {
+                    None
+                }
+            })
+            .unwrap_or_else(|| "GET".to_string());
+
+        let path = node
+            .parameters
+            .get("path")
+            .and_then(|v| {
+                if let n8n_workflow::NodeParameterValue::String(s) = v {
+                    Some(s.clone())
+                } else {
+                    None
+                }
+            })
+            .unwrap_or_else(|| "/webhook".to_string());
+
+        let mut webhook_data = DataObject::new();
+
+        // Headers
+        let mut headers = DataObject::new();
+        headers.insert("content-type".to_string(), "application/json".into());
+        headers.insert("user-agent".to_string(), "n8n-test".into());
+        webhook_data.insert("headers".to_string(), n8n_workflow::GenericValue::Object(headers));
+
+        // Params
+        webhook_data.insert("params".to_string(), n8n_workflow::GenericValue::Object(DataObject::new()));
+
+        // Query
+        webhook_data.insert("query".to_string(), n8n_workflow::GenericValue::Object(DataObject::new()));
+
+        // Body (empty for test)
+        webhook_data.insert("body".to_string(), n8n_workflow::GenericValue::Object(DataObject::new()));
+
+        // Webhook metadata
+        webhook_data.insert(
+            "webhookUrl".to_string(),
+            n8n_workflow::GenericValue::String(format!("/webhook{}", path)),
+        );
+        webhook_data.insert(
+            "httpMethod".to_string(),
+            n8n_workflow::GenericValue::String(http_method),
+        );
+        webhook_data.insert(
+            "executionMode".to_string(),
+            n8n_workflow::GenericValue::String("test".to_string()),
+        );
+
+        Ok(vec![vec![NodeExecutionData::new(webhook_data)]])
     }
 }
 

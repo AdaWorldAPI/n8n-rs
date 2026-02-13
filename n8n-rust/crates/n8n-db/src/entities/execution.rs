@@ -102,21 +102,21 @@ impl ExecutionEntity {
         self.finished
             || matches!(
                 ExecutionStatus::from_str(&self.status),
-                ExecutionStatus::Success
-                    | ExecutionStatus::Error
-                    | ExecutionStatus::Canceled
-                    | ExecutionStatus::Crashed
+                Some(ExecutionStatus::Success)
+                    | Some(ExecutionStatus::Error)
+                    | Some(ExecutionStatus::Canceled)
+                    | Some(ExecutionStatus::Crashed)
             )
     }
 
     /// Get the parsed execution status.
     pub fn get_status(&self) -> ExecutionStatus {
-        ExecutionStatus::from_str(&self.status)
+        ExecutionStatus::from_str(&self.status).unwrap_or_default()
     }
 
     /// Get the parsed execution mode.
     pub fn get_mode(&self) -> WorkflowExecuteMode {
-        WorkflowExecuteMode::from_str(&self.mode)
+        WorkflowExecuteMode::from_str(&self.mode).unwrap_or_default()
     }
 }
 

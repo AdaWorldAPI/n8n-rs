@@ -544,7 +544,8 @@ mod tests {
 
         let expr = super::super::parser::parse("1 + 2").unwrap();
         let result = evaluator.evaluate(&expr, &context).unwrap();
-        assert_eq!(result, Value::Number(3.into()));
+        // Arithmetic results are f64, so compare as float
+        assert_eq!(result.as_f64(), Some(3.0));
 
         let expr = super::super::parser::parse("\"a\" + \"b\"").unwrap();
         let result = evaluator.evaluate(&expr, &context).unwrap();

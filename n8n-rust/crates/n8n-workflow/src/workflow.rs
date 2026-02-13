@@ -24,6 +24,37 @@ pub enum WorkflowExecuteMode {
     Internal,
 }
 
+impl WorkflowExecuteMode {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            WorkflowExecuteMode::Manual => "manual",
+            WorkflowExecuteMode::Trigger => "trigger",
+            WorkflowExecuteMode::Webhook => "webhook",
+            WorkflowExecuteMode::Error => "error",
+            WorkflowExecuteMode::Wait => "wait",
+            WorkflowExecuteMode::Scheduled => "scheduled",
+            WorkflowExecuteMode::Worker => "worker",
+            WorkflowExecuteMode::Retry => "retry",
+            WorkflowExecuteMode::Internal => "internal",
+        }
+    }
+
+    pub fn from_str(s: &str) -> Option<Self> {
+        match s {
+            "manual" => Some(WorkflowExecuteMode::Manual),
+            "trigger" => Some(WorkflowExecuteMode::Trigger),
+            "webhook" => Some(WorkflowExecuteMode::Webhook),
+            "error" => Some(WorkflowExecuteMode::Error),
+            "wait" => Some(WorkflowExecuteMode::Wait),
+            "scheduled" => Some(WorkflowExecuteMode::Scheduled),
+            "worker" => Some(WorkflowExecuteMode::Worker),
+            "retry" => Some(WorkflowExecuteMode::Retry),
+            "internal" => Some(WorkflowExecuteMode::Internal),
+            _ => None,
+        }
+    }
+}
+
 /// Workflow settings.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]

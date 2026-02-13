@@ -66,10 +66,12 @@
 //! }
 //! ```
 
+pub mod api;
 pub mod negotiate;
 pub mod rest;
 pub mod stdio;
 
+pub use api::*;
 pub use negotiate::*;
 pub use rest::*;
 pub use stdio::*;
@@ -105,12 +107,8 @@ impl TransportManager {
 
         // Start REST server
         if config.rest_enabled {
-            let rest_state = RestState {
-                service: service.clone(),
-                negotiator: self.negotiator.clone(),
-            };
-            let router = create_router(rest_state);
-            let addr = config.rest_addr.parse()?;
+            let router = create_router(self.negotiator.clone());
+            let addr: std::net::SocketAddr = config.rest_addr.parse()?;
 
             let handle = tokio::spawn(async move {
                 tracing::info!("REST server listening on {}", addr);

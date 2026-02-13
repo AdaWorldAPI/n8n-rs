@@ -110,7 +110,7 @@ impl WorkflowEntity {
         self.nodes
             .iter()
             .filter(|n| {
-                !n.disabled.unwrap_or(false)
+                !n.disabled
                     && n.node_type.contains("Trigger")
                     && !n.node_type.contains("errorTrigger")
             })

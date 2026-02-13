@@ -291,6 +291,8 @@ impl WorkflowRepository {
 
     /// Create a history entry for a workflow.
     pub async fn create_history(&self, history: &WorkflowHistory) -> Result<WorkflowHistory, DbError> {
+        let nodes_json = serde_json::to_value(&history.nodes)?;
+
         let created = sqlx::query_as::<_, WorkflowHistory>(
             r#"
             INSERT INTO workflow_history (
@@ -304,7 +306,7 @@ impl WorkflowRepository {
         )
         .bind(&history.version_id)
         .bind(&history.workflow_id)
-        .bind(&history.nodes)
+        .bind(&nodes_json)
         .bind(&history.connections)
         .bind(&history.authors)
         .bind(&history.name)
