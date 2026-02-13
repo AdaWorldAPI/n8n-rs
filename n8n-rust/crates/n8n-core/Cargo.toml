@@ -23,3 +23,11 @@ async-trait = { workspace = true }
 futures = { workspace = true }
 dashmap = { workspace = true }
 parking_lot = { workspace = true }
+
+# Expression evaluation
+regex = "1.10"
+base64 = "0.22"
+urlencoding = "2.1"
+sha2 = "0.10"
+md5 = "0.7"
+rand = "0.8"

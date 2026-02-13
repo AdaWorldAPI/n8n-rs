@@ -8,45 +8,57 @@ use arrow_array::RecordBatch;
 use arrow_flight::{
     flight_service_server::FlightService, Action, ActionType, Criteria, Empty,
     FlightData, FlightDescriptor, FlightEndpoint, FlightInfo, HandshakeRequest,
-    HandshakeResponse, PutResult, SchemaResult, Ticket,
+    HandshakeResponse, PutResult, SchemaAsIpc, SchemaResult, Ticket,
 };
 use arrow_ipc::writer::IpcWriteOptions;
 use arrow_schema::Schema;
 use async_trait::async_trait;
 use futures::stream::BoxStream;
-use futures::{Stream, StreamExt};
-use std::pin::Pin;
+use futures::{Stream, StreamExt, TryStreamExt};
 use std::sync::Arc;
 use tonic::{Request, Response, Status, Streaming};
 
 /// Convert a RecordBatch to FlightData for streaming.
 pub fn batch_to_flight_data(batch: &RecordBatch) -> Result<Vec<FlightData>, ArrowError> {
-    let options = IpcWriteOptions::default();
-    let data_gen = arrow_flight::utils::flight_data_generator(
-        batch.schema(),
-        std::iter::once(batch.clone()),
-        options,
-    );
+    use arrow_flight::encode::FlightDataEncoderBuilder;
 
-    Ok(data_gen.collect())
+    let schema = batch.schema();
+    let encoder = FlightDataEncoderBuilder::new()
+        .with_schema(schema)
+        .build(futures::stream::iter(vec![Ok(batch.clone())]));
+
+    // Collect synchronously by blocking
+    let data: Vec<FlightData> = futures::executor::block_on(async {
+        encoder
+            .map(|r| r.map_err(|e| ArrowError::FlightError(e.to_string())))
+            .collect::<Vec<_>>()
+            .await
+            .into_iter()
+            .filter_map(|r| r.ok())
+            .collect()
+    });
+
+    Ok(data)
 }
 
 /// Convert FlightData stream to RecordBatches.
-pub async fn flight_data_to_batches(
-    mut stream: impl Stream<Item = Result<FlightData, Status>> + Unpin,
-) -> Result<Vec<RecordBatch>, ArrowError> {
-    let mut decoder = arrow_flight::decode::FlightDataDecoder::new(
-        stream.map(|r| r.map_err(|e| arrow::error::ArrowError::ExternalError(e.into()))),
-    );
+pub async fn flight_data_to_batches<S>(stream: S) -> Result<Vec<RecordBatch>, ArrowError>
+where
+    S: Stream<Item = Result<FlightData, Status>> + Unpin + Send + 'static,
+{
+    use arrow_flight::decode::FlightRecordBatchStream;
+    use arrow_flight::error::FlightError;
+
+    let flight_stream = stream.map(|r: Result<FlightData, Status>| {
+        r.map_err(|e: Status| FlightError::Tonic(e))
+    });
+
+    let mut decoder = FlightRecordBatchStream::new_from_flight_data(flight_stream);
 
     let mut batches = Vec::new();
-    while let Some(batch) = decoder.next().await {
-        match batch {
-            Ok(decoded) => {
-                if let Some(batch) = decoded.payload {
-                    batches.push(batch);
-                }
-            }
+    while let Some(batch_result) = decoder.next().await {
+        match batch_result {
+            Ok(batch) => batches.push(batch),
             Err(e) => return Err(ArrowError::FlightError(e.to_string())),
         }
     }
@@ -144,14 +156,15 @@ impl<T: WorkflowFlightService + 'static> FlightService for N8nFlightService<T> {
             Arc::new(Schema::empty())
         };
 
-        let total_records: usize = batches.iter().map(|b| b.num_rows()).sum();
+        let total_records: usize = batches.iter().map(|b: &RecordBatch| b.num_rows()).sum();
         let total_bytes: i64 = batches
             .iter()
-            .map(|b| b.get_array_memory_size() as i64)
+            .map(|b: &RecordBatch| b.get_array_memory_size() as i64)
             .sum();
 
         let info = FlightInfo::new()
-            .with_schema(&schema)
+            .try_with_schema(&schema)
+            .map_err(|e| Status::internal(e.to_string()))?
             .with_descriptor(descriptor)
             .with_endpoint(FlightEndpoint::new().with_ticket(Ticket::new(path.clone())))
             .with_total_records(total_records as i64)
@@ -180,7 +193,10 @@ impl<T: WorkflowFlightService + 'static> FlightService for N8nFlightService<T> {
             Arc::new(Schema::empty())
         };
 
-        let result = SchemaResult::new(schema);
+        let options = IpcWriteOptions::default();
+        let schema_as_ipc = SchemaAsIpc::new(&schema, &options);
+        let result = SchemaResult::try_from(schema_as_ipc)
+            .map_err(|e| Status::internal(e.to_string()))?;
         Ok(Response::new(result))
     }
 
@@ -217,10 +233,33 @@ impl<T: WorkflowFlightService + 'static> FlightService for N8nFlightService<T> {
     ) -> Result<Response<Self::DoPutStream>, Status> {
         let stream = request.into_inner();
 
-        // Collect all flight data
-        let batches = flight_data_to_batches(stream)
+        // Collect flight data into a vector first
+        let flight_data: Vec<FlightData> = stream
+            .try_collect()
             .await
             .map_err(|e| Status::internal(e.to_string()))?;
+
+        // Decode the flight data into record batches
+        let batches = if !flight_data.is_empty() {
+            use arrow_flight::decode::FlightRecordBatchStream;
+            use arrow_flight::error::FlightError;
+
+            let data_stream = futures::stream::iter(
+                flight_data.into_iter().map(Ok::<_, FlightError>)
+            );
+            let mut decoder = FlightRecordBatchStream::new_from_flight_data(data_stream);
+
+            let mut batches = Vec::new();
+            while let Some(batch_result) = decoder.next().await {
+                match batch_result {
+                    Ok(batch) => batches.push(batch),
+                    Err(e) => return Err(Status::internal(e.to_string())),
+                }
+            }
+            batches
+        } else {
+            Vec::new()
+        };
 
         // For now, just acknowledge receipt
         let result = PutResult {
