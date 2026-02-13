@@ -13,6 +13,8 @@ n8n-hamming = { path = "../n8n-hamming" }
 
 tonic = { workspace = true }
 prost = { workspace = true }
+prost-types = { workspace = true }
+tonic-prost = { workspace = true }
 tonic-reflection = { workspace = true }
 
 arrow = { workspace = true }
