@@ -11,8 +11,10 @@ default = []
 flight = ["arrow", "arrow-flight", "tonic", "prost", "prost-types"]
 # Enable LanceDB for embedded vector storage
 lance = ["lancedb", "arrow"]
+# Enable PostgreSQL for unified execution contract storage
+postgres = ["sqlx"]
 # Enable all high-performance features
-full = ["flight", "lance"]
+full = ["flight", "lance", "postgres"]
 
 [dependencies]
 # Web framework
@@ -65,6 +67,11 @@ prost-types = { version = "0.13", optional = true }
 # LanceDB (optional, enabled via "lance" feature)
 # ═══════════════════════════════════════════════════════════════════════════
 lancedb = { version = "0.13", optional = true }
+
+# ═══════════════════════════════════════════════════════════════════════════
+# PostgreSQL (optional, enabled via "postgres" feature)
+# ═══════════════════════════════════════════════════════════════════════════
+sqlx = { version = "0.8", features = ["runtime-tokio", "postgres", "chrono", "json"], optional = true }
 
 # Futures utilities (needed for streaming)
 futures = "0.3"

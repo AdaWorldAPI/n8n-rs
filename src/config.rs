@@ -36,6 +36,11 @@ pub struct Config {
 
     // Timezone
     pub timezone: String,
+
+    // Unified contract — cross-runtime routing
+    pub crewai_endpoint: Option<String>,
+    pub ladybug_endpoint: Option<String>,
+    pub database_url: Option<String>,
 }
 
 impl Config {
@@ -69,6 +74,9 @@ impl Config {
             basic_auth_user: env::var("N8N_BASIC_AUTH_USER").ok(),
             basic_auth_password: env::var("N8N_BASIC_AUTH_PASSWORD").ok(),
             timezone: env::var("GENERIC_TIMEZONE").unwrap_or_else(|_| "Europe/Berlin".to_string()),
+            crewai_endpoint: env::var("CREWAI_ENDPOINT").ok(),
+            ladybug_endpoint: env::var("LADYBUG_ENDPOINT").ok(),
+            database_url: env::var("DATABASE_URL").ok(),
         }
     }
 
