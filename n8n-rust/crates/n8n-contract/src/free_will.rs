@@ -610,7 +610,17 @@ mod tests {
         // needs very high evidence for Critical impact, but the type check passes
         // The interesting thing is whether the RBAC gate or YAML gate catches it
         // Either way, the pipeline properly evaluates
-        assert!(result.approved || !result.approved); // just verify no panic
+        // RestructureLayers is Critical impact — the RBAC gate for autonomous_kernel
+        // requires very high evidence for Critical. With evidence 0.99*0.99=0.98 and
+        // this custom limit set, verify the pipeline produces a definite decision.
+        // The result should have a matching decision enum.
+        if result.approved {
+            assert_eq!(result.decision, GateDecision::Allow);
+            assert!(result.denial_reason.is_none());
+        } else {
+            assert_ne!(result.decision, GateDecision::Allow);
+            assert!(result.denial_reason.is_some());
+        }
     }
 
     #[test]
