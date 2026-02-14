@@ -28,8 +28,8 @@ chrono = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 
-# Shared substrate types (LadybugDB contract)
-ladybug-contract = { workspace = true }
+# Shared substrate types (LadybugDB contract) — optional for standalone mode
+ladybug-contract = { workspace = true, optional = true }
 
 # PostgreSQL (optional, for PgStore)
 [dependencies.sqlx]
@@ -40,6 +40,7 @@ optional = true
 [features]
 default = []
 postgres = ["dep:sqlx"]
+ladybug = ["dep:ladybug-contract"]
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util", "macros"] }

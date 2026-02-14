@@ -32,7 +32,11 @@
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+
+#[cfg(feature = "ladybug")]
 use ladybug_contract::nars::TruthValue;
+#[cfg(not(feature = "ladybug"))]
+use crate::legacy_dto::TruthValue;
 
 use crate::interface_gateway::ImpactLevel;
 
