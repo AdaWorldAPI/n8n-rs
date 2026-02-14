@@ -28,9 +28,15 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use thiserror::Error;
 
+// Wire opcode constants — from ladybug-contract when available, legacy_dto otherwise.
+#[cfg(feature = "ladybug")]
 use ladybug_contract::wire::{self, CogPacket};
+#[cfg(feature = "ladybug")]
 use ladybug_contract::container::Container;
-use ladybug_contract::nars::TruthValue;
+
+// Standalone wire opcode constants for register_defaults()
+#[cfg(not(feature = "ladybug"))]
+use crate::legacy_dto::wire_ops;
 
 // =============================================================================
 // INTERFACE DEFINITION (YAML-driven)
@@ -265,9 +271,9 @@ impl InterfaceGateway {
 
     /// Convert an external request into a CogPacket using interface routing.
     ///
-    /// This is the gateway's primary function: take an interface ID and
-    /// arbitrary JSON payload, validate it, check RBAC, and produce
-    /// a binary CogPacket ready for the cognitive kernel.
+    /// Only available with the `ladybug` feature — requires the full
+    /// cognitive substrate for binary packet construction.
+    #[cfg(feature = "ladybug")]
     pub fn route_to_packet(
         &self,
         interface_id: &str,
@@ -315,12 +321,65 @@ impl InterfaceGateway {
         Ok(pkt)
     }
 
+    /// Validate an interface request without producing a CogPacket.
+    ///
+    /// Available in both standalone and full modes. Checks impact gates
+    /// and returns the matched interface definition.
+    pub fn validate_request(
+        &self,
+        interface_id: &str,
+        role: &str,
+        max_impact: ImpactLevel,
+    ) -> Result<&InterfaceDefinition, GatewayError> {
+        let iface = self
+            .interfaces
+            .get(interface_id)
+            .ok_or_else(|| GatewayError::NotFound(interface_id.to_string()))?;
+
+        if !iface.enabled {
+            return Err(GatewayError::Disabled(interface_id.to_string()));
+        }
+
+        if iface.impact > max_impact {
+            return Err(GatewayError::ImpactDenied {
+                impact: iface.impact,
+                max_allowed: max_impact,
+                role: role.to_string(),
+            });
+        }
+
+        Ok(iface)
+    }
+
     /// Register the default interface set (core 80–180 interfaces).
     ///
     /// These cover the standard n8n-rs interface surface:
     /// REST CRUD, gRPC workflow ops, Arrow Flight streaming,
     /// crew/ladybug delegation, webhook ingest, etc.
     pub fn register_defaults(&mut self) {
+        // Use canonical wire opcodes — from ladybug-contract or legacy_dto
+        #[cfg(feature = "ladybug")]
+        let ops = (
+            wire::wire_ops::EXECUTE,
+            wire::wire_ops::RESONATE,
+            wire::wire_ops::DELEGATE,
+            wire::wire_ops::COLLAPSE,
+            wire::wire_ops::CRYSTALLIZE,
+            wire::wire_ops::INTEGRATE,
+            wire::wire_ops::ROUTE,
+        );
+        #[cfg(not(feature = "ladybug"))]
+        let ops = (
+            wire_ops::EXECUTE,
+            wire_ops::RESONATE,
+            wire_ops::DELEGATE,
+            wire_ops::COLLAPSE,
+            wire_ops::CRYSTALLIZE,
+            wire_ops::INTEGRATE,
+            wire_ops::ROUTE,
+        );
+        let (op_execute, op_resonate, op_delegate, op_collapse, op_crystallize, op_integrate, _op_route) = ops;
+
         let defaults = vec![
             // --- REST API interfaces ---
             InterfaceDefinition {
@@ -331,7 +390,7 @@ impl InterfaceGateway {
                 impact: ImpactLevel::Observe,
                 source_prefix: 0x0F,
                 target_prefix: 0x0F,
-                default_opcode: wire::wire_ops::EXECUTE,
+                default_opcode: op_execute,
                 rate_limit_rps: 100,
                 required_role: None,
                 input_schema: None,
@@ -346,7 +405,7 @@ impl InterfaceGateway {
                 impact: ImpactLevel::Moderate,
                 source_prefix: 0x0F,
                 target_prefix: 0x0F,
-                default_opcode: wire::wire_ops::EXECUTE,
+                default_opcode: op_execute,
                 rate_limit_rps: 50,
                 required_role: Some("executor".into()),
                 input_schema: None,
@@ -362,7 +421,7 @@ impl InterfaceGateway {
                 impact: ImpactLevel::Moderate,
                 source_prefix: 0x0F,
                 target_prefix: 0x0F,
-                default_opcode: wire::wire_ops::EXECUTE,
+                default_opcode: op_execute,
                 rate_limit_rps: 200,
                 required_role: Some("executor".into()),
                 input_schema: None,
@@ -377,7 +436,7 @@ impl InterfaceGateway {
                 impact: ImpactLevel::Observe,
                 source_prefix: 0x0F,
                 target_prefix: 0x05,
-                default_opcode: wire::wire_ops::RESONATE,
+                default_opcode: op_resonate,
                 rate_limit_rps: 500,
                 required_role: None,
                 input_schema: None,
@@ -393,7 +452,7 @@ impl InterfaceGateway {
                 impact: ImpactLevel::Internal,
                 source_prefix: 0x0F,
                 target_prefix: 0x0F,
-                default_opcode: wire::wire_ops::EXECUTE,
+                default_opcode: op_execute,
                 rate_limit_rps: 0, // unlimited for streaming
                 required_role: Some("data_engineer".into()),
                 input_schema: None,
@@ -409,7 +468,7 @@ impl InterfaceGateway {
                 impact: ImpactLevel::Moderate,
                 source_prefix: 0x0F,
                 target_prefix: 0x0C,
-                default_opcode: wire::wire_ops::DELEGATE,
+                default_opcode: op_delegate,
                 rate_limit_rps: 100,
                 required_role: Some("agent_operator".into()),
                 input_schema: None,
@@ -425,7 +484,7 @@ impl InterfaceGateway {
                 impact: ImpactLevel::Internal,
                 source_prefix: 0x0F,
                 target_prefix: 0x05,
-                default_opcode: wire::wire_ops::RESONATE,
+                default_opcode: op_resonate,
                 rate_limit_rps: 1000,
                 required_role: None,
                 input_schema: None,
@@ -440,7 +499,7 @@ impl InterfaceGateway {
                 impact: ImpactLevel::Moderate,
                 source_prefix: 0x0F,
                 target_prefix: 0x05,
-                default_opcode: wire::wire_ops::COLLAPSE,
+                default_opcode: op_collapse,
                 rate_limit_rps: 500,
                 required_role: Some("cognitive_operator".into()),
                 input_schema: None,
@@ -455,7 +514,7 @@ impl InterfaceGateway {
                 impact: ImpactLevel::Significant,
                 source_prefix: 0x0F,
                 target_prefix: 0x05,
-                default_opcode: wire::wire_ops::CRYSTALLIZE,
+                default_opcode: op_crystallize,
                 rate_limit_rps: 10,
                 required_role: Some("cognitive_admin".into()),
                 input_schema: None,
@@ -471,7 +530,7 @@ impl InterfaceGateway {
                 impact: ImpactLevel::Critical,
                 source_prefix: 0x05,
                 target_prefix: 0x0F,
-                default_opcode: wire::wire_ops::INTEGRATE,
+                default_opcode: op_integrate,
                 rate_limit_rps: 1,
                 required_role: Some("system_architect".into()),
                 input_schema: None,
@@ -487,7 +546,7 @@ impl InterfaceGateway {
                 impact: ImpactLevel::Moderate,
                 source_prefix: 0x0F,
                 target_prefix: 0x0F,
-                default_opcode: wire::wire_ops::EXECUTE,
+                default_opcode: op_execute,
                 rate_limit_rps: 200,
                 required_role: None,
                 input_schema: None,
@@ -503,7 +562,7 @@ impl InterfaceGateway {
                 impact: ImpactLevel::Internal,
                 source_prefix: 0x0F,
                 target_prefix: 0x0F,
-                default_opcode: wire::wire_ops::EXECUTE,
+                default_opcode: op_execute,
                 rate_limit_rps: 0,
                 required_role: None,
                 input_schema: None,
@@ -530,6 +589,7 @@ impl Default for InterfaceGateway {
 // HELPERS
 // =============================================================================
 
+#[cfg(feature = "ladybug")]
 fn hash_json_to_u64(value: &serde_json::Value) -> u64 {
     use std::hash::{Hash, Hasher};
     let mut h = std::collections::hash_map::DefaultHasher::new();
@@ -574,6 +634,35 @@ mod tests {
     }
 
     #[test]
+    fn test_validate_request_observe() {
+        let gw = InterfaceGateway::default();
+        let iface = gw.validate_request("rest.workflow.list", "viewer", ImpactLevel::Observe).unwrap();
+        assert_eq!(iface.id, "rest.workflow.list");
+    }
+
+    #[test]
+    fn test_validate_request_impact_denied() {
+        let gw = InterfaceGateway::default();
+        let result = gw.validate_request("a2a.self.modify", "viewer", ImpactLevel::Observe);
+        assert!(result.is_err());
+        match result {
+            Err(GatewayError::ImpactDenied { impact, .. }) => {
+                assert_eq!(impact, ImpactLevel::Critical);
+            }
+            _ => panic!("Expected ImpactDenied error"),
+        }
+    }
+
+    #[test]
+    fn test_validate_request_not_found() {
+        let gw = InterfaceGateway::default();
+        let result = gw.validate_request("nonexistent.interface", "admin", ImpactLevel::Critical);
+        assert!(matches!(result, Err(GatewayError::NotFound(_))));
+    }
+
+    // CogPacket-dependent tests — only with ladybug feature
+    #[cfg(feature = "ladybug")]
+    #[test]
     fn test_route_to_packet_observe() {
         let gw = InterfaceGateway::default();
         let payload = serde_json::json!({"limit": 10});
@@ -587,12 +676,12 @@ mod tests {
         assert!(pkt.is_delegation());
     }
 
+    #[cfg(feature = "ladybug")]
     #[test]
     fn test_route_to_packet_impact_denied() {
         let gw = InterfaceGateway::default();
         let payload = serde_json::json!({"config": "new"});
 
-        // Self-modify is Critical, but we only allow Observe
         let result = gw.route_to_packet(
             "a2a.self.modify",
             &payload,
@@ -609,6 +698,7 @@ mod tests {
         }
     }
 
+    #[cfg(feature = "ladybug")]
     #[test]
     fn test_route_to_packet_not_found() {
         let gw = InterfaceGateway::default();
@@ -621,6 +711,7 @@ mod tests {
         assert!(matches!(result, Err(GatewayError::NotFound(_))));
     }
 
+    #[cfg(feature = "ladybug")]
     #[test]
     fn test_route_to_packet_disabled() {
         let mut gw = InterfaceGateway::new();
@@ -657,6 +748,7 @@ mod tests {
         assert!(ImpactLevel::Significant < ImpactLevel::Critical);
     }
 
+    #[cfg(feature = "ladybug")]
     #[test]
     fn test_crew_delegation_routing() {
         let gw = InterfaceGateway::default();
@@ -671,6 +763,7 @@ mod tests {
         assert_eq!((pkt.target_addr() >> 8) as u8, 0x0C); // crew domain
     }
 
+    #[cfg(feature = "ladybug")]
     #[test]
     fn test_self_modify_routing() {
         let gw = InterfaceGateway::default();
