@@ -62,3 +62,8 @@ pub use free_will::{FreeWillPipeline, ModificationProposal, ModificationType, Mo
 // Re-export the shared substrate types from ladybug-contract (only with feature)
 #[cfg(feature = "ladybug")]
 pub use ladybug_contract as kernel;
+
+// Unified CogRecord schema constants — the canonical 2×8192 layout.
+// Available via `n8n_contract::schema` when compiled with ladybug.
+#[cfg(feature = "ladybug")]
+pub use ladybug_contract::schema;
