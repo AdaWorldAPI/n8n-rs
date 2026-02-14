@@ -21,6 +21,10 @@ pub mod crew_router;
 pub mod ladybug_router;
 pub mod executors;
 pub mod bridge;
+pub mod wire_bridge;
+pub mod interface_gateway;
+pub mod impact_gate;
+pub mod free_will;
 
 #[cfg(feature = "postgres")]
 pub mod pg_store;
@@ -30,6 +34,9 @@ pub use envelope::*;
 pub use crew_router::CrewRouter;
 pub use ladybug_router::LadybugRouter;
 pub use executors::{CrewAgentExecutor, LadybugResonateExecutor, LadybugCollapseExecutor};
+pub use interface_gateway::{InterfaceGateway, InterfaceDefinition, InterfaceProtocol, ImpactLevel};
+pub use impact_gate::{ImpactGate, GateDecision, RoleDefinition};
+pub use free_will::{FreeWillPipeline, ModificationProposal, ModificationType, ModificationLimits};
 
 // Re-export the shared substrate types from ladybug-contract
 pub use ladybug_contract as kernel;
