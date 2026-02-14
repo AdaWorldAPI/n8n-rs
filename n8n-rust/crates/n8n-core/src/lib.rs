@@ -9,6 +9,7 @@
 //! - Partial execution (test specific nodes)
 //! - Error handling and retry logic
 
+pub mod chess_workflow;
 pub mod credentials;
 pub mod engine;
 pub mod error;
