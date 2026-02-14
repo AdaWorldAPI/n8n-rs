@@ -102,6 +102,10 @@ impl From<&DataEnvelope> for V1DataEnvelope {
                 confidence: e.metadata.confidence,
                 epoch: e.metadata.epoch,
                 version: e.metadata.version.clone(),
+                dominant_layer: e.metadata.dominant_layer,
+                layer_activations: e.metadata.layer_activations.clone(),
+                nars_frequency: e.metadata.nars_frequency,
+                calibration_error: e.metadata.calibration_error,
             },
         }
     }
@@ -116,6 +120,10 @@ impl From<V1DataEnvelope> for DataEnvelope {
                 confidence: v.metadata.confidence,
                 epoch: v.metadata.epoch,
                 version: v.metadata.version,
+                dominant_layer: v.metadata.dominant_layer,
+                layer_activations: v.metadata.layer_activations,
+                nars_frequency: v.metadata.nars_frequency,
+                calibration_error: v.metadata.calibration_error,
             },
         }
     }

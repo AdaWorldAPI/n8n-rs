@@ -260,6 +260,24 @@ pub struct EnvelopeMetadata {
     /// Schema version tag.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub version: Option<String>,
+
+    // --- 10-Layer Cognitive Awareness (backward-compatible) ---
+
+    /// Dominant cognitive layer (0-9 → L1-L10) that produced this output.
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub dominant_layer: Option<u8>,
+
+    /// 10-layer activation snapshot: [f32; 10] for cross-agent awareness.
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub layer_activations: Option<Vec<f32>>,
+
+    /// NARS frequency from L9 validation.
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub nars_frequency: Option<f64>,
+
+    /// Calibration error (Brier score) from MetaCognition.
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub calibration_error: Option<f64>,
 }
 
 /// A data envelope that flows between steps in a unified execution.
@@ -285,6 +303,10 @@ impl DataEnvelope {
                 confidence: 1.0,
                 epoch: Utc::now().timestamp_millis(),
                 version: None,
+                dominant_layer: None,
+                layer_activations: None,
+                nars_frequency: None,
+                calibration_error: None,
             },
         }
     }

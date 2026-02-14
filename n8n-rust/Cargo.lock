@@ -2489,7 +2489,6 @@ dependencies = [
 [[package]]
 name = "ladybug-contract"
 version = "0.1.0"
-source = "git+https://github.com/AdaWorldAPI/ladybug-rs.git?branch=claude%2Fcheck-module-status-MlttF#0670c8688759f6bc2e4f7a6691f2e4805eb26dd9"
 dependencies = [
  "chrono",
  "serde",
