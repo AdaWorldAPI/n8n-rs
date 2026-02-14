@@ -68,7 +68,8 @@ sha2 = "0.10"
 rand = "0.8"
 
 # Vendor: Cognitive Database (CAM operations, 10kbit fingerprints)
-ladybug = { git = "https://github.com/AdaWorldAPI/ladybug-rs.git", features = ["lancedb"] }
+ladybug = { path = "../../ladybug-rs", features = ["lancedb"] }
+ladybug-contract = { path = "../../ladybug-rs/crates/ladybug-contract" }
 
 # Build
 tonic-build = "0.14"

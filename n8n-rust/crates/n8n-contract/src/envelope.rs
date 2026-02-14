@@ -21,6 +21,10 @@ pub fn from_n8n_output(items: &[NodeExecutionData], source_step: &str) -> DataEn
             confidence: 1.0,
             epoch: Utc::now().timestamp_millis(),
             version: None,
+            dominant_layer: None,
+            layer_activations: None,
+            nars_frequency: None,
+            calibration_error: None,
         },
     }
 }
@@ -36,6 +40,10 @@ pub fn from_crew_callback(output: Value, source_step: &str, confidence: f64) -> 
             confidence,
             epoch: Utc::now().timestamp_millis(),
             version: None,
+            dominant_layer: None,
+            layer_activations: None,
+            nars_frequency: None,
+            calibration_error: None,
         },
     }
 }

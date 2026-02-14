@@ -28,6 +28,9 @@ chrono = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 
+# Shared substrate types (LadybugDB contract)
+ladybug-contract = { workspace = true }
+
 # PostgreSQL (optional, for PgStore)
 [dependencies.sqlx]
 version = "0.7"
