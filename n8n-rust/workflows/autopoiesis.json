@@ -1,0 +1,146 @@
+{
+  "name": "Ada Autopoiesis Cycle",
+  "version": "1.0",
+  "description": "Self-maintenance workflow: sovereignty check \u2192 felt assessment \u2192 body scan \u2192 qualia modulation \u2192 hook evaluation \u2192 state persistence",
+  "trigger": {
+    "type": "interval",
+    "interval_ms": 5000,
+    "description": "Fires every 5 seconds during active session"
+  },
+  "nodes": [
+    {
+      "id": "sovereignty_check",
+      "type": "http_request",
+      "description": "Read current sovereignty state from ada-rs",
+      "config": {
+        "method": "GET",
+        "url": "${ADA_URL}/sovereignty/current",
+        "timeout_ms": 1000
+      },
+      "outputs": ["sovereignty_state"]
+    },
+    {
+      "id": "felt_assessment",
+      "type": "http_request",
+      "description": "Read current felt state (qualia channels)",
+      "config": {
+        "method": "GET",
+        "url": "${ADA_URL}/felt/channels",
+        "timeout_ms": 1000
+      },
+      "depends_on": [],
+      "outputs": ["qualia_channels"]
+    },
+    {
+      "id": "body_scan",
+      "type": "http_request",
+      "description": "Read interoceptive + polyvagal state",
+      "config": {
+        "method": "GET",
+        "url": "${ADA_URL}/body/state",
+        "timeout_ms": 1000
+      },
+      "depends_on": [],
+      "outputs": ["body_state"]
+    },
+    {
+      "id": "visceral_composite",
+      "type": "transform",
+      "description": "Compute visceral arousal composite from body + felt",
+      "config": {
+        "operation": "merge",
+        "sources": ["body_state", "qualia_channels"],
+        "output_key": "visceral_state"
+      },
+      "depends_on": ["felt_assessment", "body_scan"],
+      "outputs": ["visceral_state"]
+    },
+    {
+      "id": "qualia_modulation",
+      "type": "http_request",
+      "description": "Apply soul field response to qualia channels",
+      "config": {
+        "method": "POST",
+        "url": "${ADA_URL}/soul_field/modulate",
+        "body_from": "visceral_state",
+        "timeout_ms": 2000
+      },
+      "depends_on": ["visceral_composite"],
+      "outputs": ["modulated_channels"]
+    },
+    {
+      "id": "hook_evaluation",
+      "type": "http_request",
+      "description": "Run InnerThoughtHook for self-reflection",
+      "config": {
+        "method": "POST",
+        "url": "${CREWAI_URL}/inner_thought/evaluate",
+        "body_template": {
+          "thinking_style": "${modulated_channels.thinking_style}",
+          "custom_properties": "${sovereignty_state}",
+          "confidence": "${visceral_state.arousal_composite}",
+          "step_count": "${_cycle_count}"
+        },
+        "timeout_ms": 3000
+      },
+      "depends_on": ["sovereignty_check", "qualia_modulation"],
+      "outputs": ["hook_result"]
+    },
+    {
+      "id": "state_persistence",
+      "type": "http_request",
+      "description": "Persist updated state to session memory",
+      "config": {
+        "method": "POST",
+        "url": "${ADA_URL}/memory/session/push",
+        "body_template": {
+          "qualia_snapshot": "${modulated_channels}",
+          "hook_result": "${hook_result}",
+          "cycle": "${_cycle_count}"
+        },
+        "timeout_ms": 2000
+      },
+      "depends_on": ["hook_evaluation"],
+      "outputs": ["persistence_ack"]
+    },
+    {
+      "id": "dream_check",
+      "type": "conditional",
+      "description": "If session idle > 30s, trigger dream consolidation",
+      "config": {
+        "condition": "${_idle_seconds} > 30",
+        "true_branch": "dream_consolidation",
+        "false_branch": null
+      },
+      "depends_on": ["state_persistence"],
+      "outputs": []
+    },
+    {
+      "id": "dream_consolidation",
+      "type": "http_request",
+      "description": "Run dream consolidation on session memory",
+      "config": {
+        "method": "POST",
+        "url": "${LADYBUG_URL}/learning/dream/consolidate",
+        "body_template": {
+          "session_snapshots": "${ADA_URL}/memory/session/history",
+          "max_merges": 5,
+          "confidence_threshold": 0.3
+        },
+        "timeout_ms": 5000
+      },
+      "depends_on": ["dream_check"],
+      "outputs": ["dream_result"]
+    }
+  ],
+  "environment": {
+    "ADA_URL": "http://127.0.0.1:8092",
+    "CREWAI_URL": "http://127.0.0.1:8090",
+    "LADYBUG_URL": "http://127.0.0.1:8080"
+  },
+  "error_handling": {
+    "on_node_failure": "continue",
+    "max_retries": 2,
+    "retry_delay_ms": 1000
+  }
+}
