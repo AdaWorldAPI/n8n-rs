@@ -28,7 +28,7 @@ describe('Anthropic Node', () => {
 			executeFunctionsMock.getNodeParameter.mockImplementation((parameter: string) => {
 				switch (parameter) {
 					case 'modelId':
-						return 'claude-sonnet-4-20250514';
+						return 'claude-opus-4-5-20251101';
 					case 'messages.values':
 						return [{ role: 'user', content: 'Hello, world!' }];
 					case 'simplify':
@@ -74,7 +74,7 @@ describe('Anthropic Node', () => {
 			]);
 			expect(apiRequestMock).toHaveBeenCalledWith('POST', '/v1/messages', {
 				body: {
-					model: 'claude-sonnet-4-20250514',
+					model: 'claude-opus-4-5-20251101',
 					max_tokens: 1024,
 					temperature: 0.7,
 					top_p: 0.9,
@@ -108,7 +108,7 @@ describe('Anthropic Node', () => {
 			executeFunctionsMock.getNodeParameter.mockImplementation((parameter: string) => {
 				switch (parameter) {
 					case 'modelId':
-						return 'claude-sonnet-4-20250514';
+						return 'claude-opus-4-5-20251101';
 					case 'messages.values':
 						return [{ role: 'user', content: 'Hello, world!' }];
 					case 'simplify':
@@ -161,7 +161,7 @@ describe('Anthropic Node', () => {
 			expect(uploadFileMock).toHaveBeenCalledWith(Buffer.from('abcdefgh'), 'application/pdf');
 			expect(apiRequestMock).toHaveBeenCalledWith('POST', '/v1/messages', {
 				body: {
-					model: 'claude-sonnet-4-20250514',
+					model: 'claude-opus-4-5-20251101',
 					max_tokens: 1024,
 					messages: [
 						{
@@ -195,7 +195,7 @@ describe('Anthropic Node', () => {
 			executeFunctionsMock.getNodeParameter.mockImplementation((parameter: string) => {
 				switch (parameter) {
 					case 'modelId':
-						return 'claude-sonnet-4-20250514';
+						return 'claude-opus-4-5-20251101';
 					case 'messages.values':
 						return [{ role: 'user', content: 'Hello, world!' }];
 					case 'simplify':
@@ -247,7 +247,7 @@ describe('Anthropic Node', () => {
 			});
 			expect(apiRequestMock).toHaveBeenCalledWith('POST', '/v1/messages', {
 				body: {
-					model: 'claude-sonnet-4-20250514',
+					model: 'claude-opus-4-5-20251101',
 					max_tokens: 1024,
 					messages: [
 						{
@@ -583,7 +583,7 @@ describe('Anthropic Node', () => {
 			executeFunctionsMock.getNodeParameter.mockImplementation((parameter: string) => {
 				switch (parameter) {
 					case 'modelId':
-						return 'claude-sonnet-4-20250514';
+						return 'claude-opus-4-5-20251101';
 					case 'inputType':
 						return 'url';
 					case 'imageUrls':
@@ -628,7 +628,7 @@ describe('Anthropic Node', () => {
 			]);
 			expect(apiRequestMock).toHaveBeenCalledWith('POST', '/v1/messages', {
 				body: {
-					model: 'claude-sonnet-4-20250514',
+					model: 'claude-opus-4-5-20251101',
 					max_tokens: 1024,
 					messages: [
 						{
@@ -656,7 +656,7 @@ describe('Anthropic Node', () => {
 			executeFunctionsMock.getNodeParameter.mockImplementation((parameter: string) => {
 				switch (parameter) {
 					case 'modelId':
-						return 'claude-sonnet-4-20250514';
+						return 'claude-opus-4-5-20251101';
 					case 'inputType':
 						return 'binary';
 					case 'binaryPropertyName':
@@ -712,7 +712,7 @@ describe('Anthropic Node', () => {
 			]);
 			expect(apiRequestMock).toHaveBeenCalledWith('POST', '/v1/messages', {
 				body: {
-					model: 'claude-sonnet-4-20250514',
+					model: 'claude-opus-4-5-20251101',
 					max_tokens: 1024,
 					messages: [
 						{
@@ -741,7 +741,7 @@ describe('Anthropic Node', () => {
 			executeFunctionsMock.getNodeParameter.mockImplementation((parameter: string) => {
 				switch (parameter) {
 					case 'modelId':
-						return 'claude-sonnet-4-20250514';
+						return 'claude-opus-4-5-20251101';
 					case 'inputType':
 						return 'url';
 					case 'imageUrls':
@@ -786,7 +786,7 @@ describe('Anthropic Node', () => {
 			]);
 			expect(apiRequestMock).toHaveBeenCalledWith('POST', '/v1/messages', {
 				body: {
-					model: 'claude-sonnet-4-20250514',
+					model: 'claude-opus-4-5-20251101',
 					max_tokens: 1024,
 					messages: [
 						{

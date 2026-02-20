@@ -44,7 +44,7 @@ export async function searchModels(
 		}));
 	}
 
-	// Sort models with more recent ones first (claude-3 before claude-2)
+	// Sort models with more recent ones first (newer models first)
 	results = results.sort((a, b) => {
 		const modelA = models.find((m) => m.id === a.value);
 		const modelB = models.find((m) => m.id === b.value);

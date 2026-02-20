@@ -39,7 +39,7 @@ const mockOpenAiModel = createMockAgent({
 
 const mockAnthropicModel = createMockAgent({
 	name: 'Claude',
-	model: { provider: 'anthropic', model: 'claude-3-5-sonnet-20241022' },
+	model: { provider: 'anthropic', model: 'claude-opus-4-5-20251101' },
 });
 
 const buildMenuOptions: BuildMenuItemsOptions = {

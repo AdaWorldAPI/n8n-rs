@@ -108,44 +108,9 @@ const MODEL_METADATA_REGISTRY: Partial<
 	Record<ChatHubLLMProvider, Partial<Record<string, Partial<ChatModelMetadataDto>>>>
 > = {
 	anthropic: {
-		'claude-3-5-haiku-20241022': {
-			inputModalities: ['text', 'image'],
-		},
-		'claude-3-haiku-20240307': {
-			inputModalities: ['text', 'image'],
-		},
-		'claude-3-opus-20240229': {
-			inputModalities: ['text', 'image'],
-		},
-		'claude-3-sonnet-20240229': {
-			inputModalities: ['text', 'image'],
-		},
-		'claude-3-5-sonnet-20241022': {
-			inputModalities: ['text', 'image'],
-		},
-		'claude-3-7-sonnet-20250219': {
-			inputModalities: ['text', 'image'],
-		},
-		'claude-sonnet-4-20250514': {
-			inputModalities: ['text', 'image'],
-		},
-		'claude-haiku-4-5-20251001': {
-			inputModalities: ['text', 'image'],
-			priority: 80,
-		},
-		'claude-sonnet-4-5-20250929': {
-			inputModalities: ['text', 'image'],
-			priority: 90,
-		},
 		'claude-opus-4-5-20251101': {
 			inputModalities: ['text', 'image'],
 			priority: 100,
-		},
-		'claude-opus-4-20250514': {
-			inputModalities: ['text', 'image'],
-		},
-		'claude-opus-4-1-20250805': {
-			inputModalities: ['text', 'image'],
 		},
 	},
 	openai: {

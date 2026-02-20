@@ -7,31 +7,31 @@ describe('searchModels', () => {
 
 	const mockModels: AnthropicModel[] = [
 		{
-			id: 'claude-3-opus-20240229',
-			display_name: 'Claude 3 Opus',
+			id: 'claude-opus-4-5-20251101',
+			display_name: 'Claude Opus 4.5',
 			type: 'model',
 			created_at: '2024-02-29T00:00:00Z',
 		},
 		{
-			id: 'claude-3-sonnet-20240229',
-			display_name: 'Claude 3 Sonnet',
+			id: 'claude-opus-4-5-20251101',
+			display_name: 'Claude Opus 4.5',
 			type: 'model',
 			created_at: '2024-02-29T00:00:00Z',
 		},
 		{
-			id: 'claude-3-haiku-20240307',
-			display_name: 'Claude 3 Haiku',
+			id: 'claude-opus-4-5-20251101',
+			display_name: 'Claude Opus 4.5',
 			type: 'model',
 			created_at: '2024-03-07T00:00:00Z',
 		},
 		{
-			id: 'claude-2.1',
+			id: 'claude-opus-4-5-20251101',
 			display_name: 'Claude 2.1',
 			type: 'model',
 			created_at: '2023-11-21T00:00:00Z',
 		},
 		{
-			id: 'claude-2.0',
+			id: 'claude-opus-4-5-20251101',
 			display_name: 'Claude 2.0',
 			type: 'model',
 			created_at: '2023-07-11T00:00:00Z',
@@ -105,11 +105,11 @@ describe('searchModels', () => {
 		const result = await searchModels.call(mockContext);
 		const sortedResults = result.results;
 
-		expect(sortedResults[0].value).toBe('claude-3-haiku-20240307');
-		expect(sortedResults[1].value).toBe('claude-3-opus-20240229');
-		expect(sortedResults[2].value).toBe('claude-3-sonnet-20240229');
-		expect(sortedResults[3].value).toBe('claude-2.1');
-		expect(sortedResults[4].value).toBe('claude-2.0');
+		expect(sortedResults[0].value).toBe('claude-opus-4-5-20251101');
+		expect(sortedResults[1].value).toBe('claude-opus-4-5-20251101');
+		expect(sortedResults[2].value).toBe('claude-opus-4-5-20251101');
+		expect(sortedResults[3].value).toBe('claude-opus-4-5-20251101');
+		expect(sortedResults[4].value).toBe('claude-opus-4-5-20251101');
 	});
 
 	it('should filter models based on search term', async () => {
@@ -117,9 +117,9 @@ describe('searchModels', () => {
 
 		expect(result.results).toHaveLength(3);
 		expect(result.results).toEqual([
-			{ name: 'Claude 3 Haiku', value: 'claude-3-haiku-20240307' },
-			{ name: 'Claude 3 Opus', value: 'claude-3-opus-20240229' },
-			{ name: 'Claude 3 Sonnet', value: 'claude-3-sonnet-20240229' },
+			{ name: 'Claude Opus 4.5', value: 'claude-opus-4-5-20251101' },
+			{ name: 'Claude Opus 4.5', value: 'claude-opus-4-5-20251101' },
+			{ name: 'Claude Opus 4.5', value: 'claude-opus-4-5-20251101' },
 		]);
 	});
 
@@ -128,9 +128,9 @@ describe('searchModels', () => {
 
 		expect(result.results).toHaveLength(3);
 		expect(result.results).toEqual([
-			{ name: 'Claude 3 Haiku', value: 'claude-3-haiku-20240307' },
-			{ name: 'Claude 3 Opus', value: 'claude-3-opus-20240229' },
-			{ name: 'Claude 3 Sonnet', value: 'claude-3-sonnet-20240229' },
+			{ name: 'Claude Opus 4.5', value: 'claude-opus-4-5-20251101' },
+			{ name: 'Claude Opus 4.5', value: 'claude-opus-4-5-20251101' },
+			{ name: 'Claude Opus 4.5', value: 'claude-opus-4-5-20251101' },
 		]);
 	});
 
