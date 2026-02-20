@@ -979,7 +979,7 @@ describe('chatHub', () => {
 						sessionId,
 						messageId,
 						message: 'Test message',
-						model: { provider: 'anthropic', model: 'claude-3-5-sonnet-20241022' },
+						model: { provider: 'anthropic', model: 'claude-opus-4-5-20251101' },
 						credentials: {
 							anthropicApi: { id: anthropicCredential.id, name: anthropicCredential.name },
 						},
@@ -1047,7 +1047,7 @@ describe('chatHub', () => {
 						sessionId,
 						messageId,
 						message: 'Test message',
-						model: { provider: 'anthropic', model: 'claude-3-5-sonnet-20241022' },
+						model: { provider: 'anthropic', model: 'claude-opus-4-5-20251101' },
 						credentials: {
 							anthropicApi: { id: anthropicCredential.id, name: anthropicCredential.name },
 						},
@@ -1127,7 +1127,7 @@ describe('chatHub', () => {
 						sessionId,
 						messageId,
 						message: 'Test message',
-						model: { provider: 'anthropic', model: 'claude-3-5-sonnet-20241022' },
+						model: { provider: 'anthropic', model: 'claude-opus-4-5-20251101' },
 						credentials: {
 							anthropicApi: { id: anthropicCredential.id, name: anthropicCredential.name },
 						},
@@ -1176,7 +1176,7 @@ describe('chatHub', () => {
 						sessionId,
 						messageId,
 						message: 'Test message',
-						model: { provider: 'anthropic', model: 'claude-3-5-sonnet-20241022' },
+						model: { provider: 'anthropic', model: 'claude-opus-4-5-20251101' },
 						credentials: {
 							anthropicApi: { id: anthropicCredential.id, name: anthropicCredential.name },
 						},

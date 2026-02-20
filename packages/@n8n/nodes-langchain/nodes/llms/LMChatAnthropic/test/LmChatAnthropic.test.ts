@@ -100,7 +100,7 @@ describe('LmChatAnthropic', () => {
 			const mockContext = setupMockContext({ typeVersion: 1.3 });
 
 			mockContext.getNodeParameter = jest.fn().mockImplementation((paramName: string) => {
-				if (paramName === 'model.value') return 'claude-sonnet-4-20250514';
+				if (paramName === 'model.value') return 'claude-opus-4-5-20251101';
 				if (paramName === 'options') return {};
 				return undefined;
 			});
@@ -113,7 +113,7 @@ describe('LmChatAnthropic', () => {
 			expect(MockedChatAnthropic).toHaveBeenCalledWith(
 				expect.objectContaining({
 					anthropicApiKey: 'test-api-key',
-					model: 'claude-sonnet-4-20250514',
+					model: 'claude-opus-4-5-20251101',
 					anthropicApiUrl: 'https://api.anthropic.com',
 					maxTokens: undefined,
 					temperature: undefined,
@@ -139,7 +139,7 @@ describe('LmChatAnthropic', () => {
 			const mockContext = setupMockContext({ typeVersion: 1.2 });
 
 			mockContext.getNodeParameter = jest.fn().mockImplementation((paramName: string) => {
-				if (paramName === 'model') return 'claude-3-5-sonnet-20241022';
+				if (paramName === 'model') return 'claude-opus-4-5-20251101';
 				if (paramName === 'options') return {};
 				return undefined;
 			});
@@ -151,7 +151,7 @@ describe('LmChatAnthropic', () => {
 			expect(MockedChatAnthropic).toHaveBeenCalledWith(
 				expect.objectContaining({
 					anthropicApiKey: 'test-api-key',
-					model: 'claude-3-5-sonnet-20241022',
+					model: 'claude-opus-4-5-20251101',
 					anthropicApiUrl: 'https://api.anthropic.com',
 				}),
 			);
@@ -167,7 +167,7 @@ describe('LmChatAnthropic', () => {
 			});
 
 			mockContext.getNodeParameter = jest.fn().mockImplementation((paramName: string) => {
-				if (paramName === 'model.value') return 'claude-sonnet-4-20250514';
+				if (paramName === 'model.value') return 'claude-opus-4-5-20251101';
 				if (paramName === 'options') return {};
 				return undefined;
 			});
@@ -177,7 +177,7 @@ describe('LmChatAnthropic', () => {
 			expect(MockedChatAnthropic).toHaveBeenCalledWith(
 				expect.objectContaining({
 					anthropicApiKey: 'test-api-key',
-					model: 'claude-sonnet-4-20250514',
+					model: 'claude-opus-4-5-20251101',
 					anthropicApiUrl: customURL,
 				}),
 			);
@@ -193,7 +193,7 @@ describe('LmChatAnthropic', () => {
 			};
 
 			mockContext.getNodeParameter = jest.fn().mockImplementation((paramName: string) => {
-				if (paramName === 'model.value') return 'claude-sonnet-4-20250514';
+				if (paramName === 'model.value') return 'claude-opus-4-5-20251101';
 				if (paramName === 'options') return options;
 				return undefined;
 			});
@@ -203,7 +203,7 @@ describe('LmChatAnthropic', () => {
 			expect(MockedChatAnthropic).toHaveBeenCalledWith(
 				expect.objectContaining({
 					anthropicApiKey: 'test-api-key',
-					model: 'claude-sonnet-4-20250514',
+					model: 'claude-opus-4-5-20251101',
 					anthropicApiUrl: 'https://api.anthropic.com',
 					maxTokens: 2048,
 					temperature: 0.8,
@@ -220,7 +220,7 @@ describe('LmChatAnthropic', () => {
 			const mockContext = setupMockContext();
 
 			mockContext.getNodeParameter = jest.fn().mockImplementation((paramName: string) => {
-				if (paramName === 'model.value') return 'claude-sonnet-4-20250514';
+				if (paramName === 'model.value') return 'claude-opus-4-5-20251101';
 				if (paramName === 'options') return { temperature: 0.7 };
 				return undefined;
 			});
@@ -240,7 +240,7 @@ describe('LmChatAnthropic', () => {
 			const mockContext = setupMockContext();
 
 			mockContext.getNodeParameter = jest.fn().mockImplementation((paramName: string) => {
-				if (paramName === 'model.value') return 'claude-sonnet-4-20250514';
+				if (paramName === 'model.value') return 'claude-opus-4-5-20251101';
 				if (paramName === 'options') return { topP: 0.9 };
 				return undefined;
 			});
@@ -259,7 +259,7 @@ describe('LmChatAnthropic', () => {
 			const mockContext = setupMockContext();
 
 			mockContext.getNodeParameter = jest.fn().mockImplementation((paramName: string) => {
-				if (paramName === 'model.value') return 'claude-sonnet-4-20250514';
+				if (paramName === 'model.value') return 'claude-opus-4-5-20251101';
 				if (paramName === 'options') return { topP: 0.9 };
 				return undefined;
 			});
@@ -280,7 +280,7 @@ describe('LmChatAnthropic', () => {
 			const mockContext = setupMockContext();
 
 			mockContext.getNodeParameter = jest.fn().mockImplementation((paramName: string) => {
-				if (paramName === 'model.value') return 'claude-sonnet-4-20250514';
+				if (paramName === 'model.value') return 'claude-opus-4-5-20251101';
 				if (paramName === 'options') return { topP: 0.9, temperature: 0.8 };
 				return undefined;
 			});
@@ -306,7 +306,7 @@ describe('LmChatAnthropic', () => {
 			};
 
 			mockContext.getNodeParameter = jest.fn().mockImplementation((paramName: string) => {
-				if (paramName === 'model.value') return 'claude-sonnet-4-20250514';
+				if (paramName === 'model.value') return 'claude-opus-4-5-20251101';
 				if (paramName === 'options') return options;
 				return undefined;
 			});
@@ -316,7 +316,7 @@ describe('LmChatAnthropic', () => {
 			expect(MockedChatAnthropic).toHaveBeenCalledWith(
 				expect.objectContaining({
 					anthropicApiKey: 'test-api-key',
-					model: 'claude-sonnet-4-20250514',
+					model: 'claude-opus-4-5-20251101',
 					maxTokens: 4096,
 					invocationKwargs: {
 						thinking: {
@@ -339,7 +339,7 @@ describe('LmChatAnthropic', () => {
 			};
 
 			mockContext.getNodeParameter = jest.fn().mockImplementation((paramName: string) => {
-				if (paramName === 'model.value') return 'claude-sonnet-4-20250514';
+				if (paramName === 'model.value') return 'claude-opus-4-5-20251101';
 				if (paramName === 'options') return options;
 				return undefined;
 			});
@@ -374,7 +374,7 @@ describe('LmChatAnthropic', () => {
 			};
 
 			mockContext.getNodeParameter = jest.fn().mockImplementation((paramName: string) => {
-				if (paramName === 'model.value') return 'claude-sonnet-4-20250514';
+				if (paramName === 'model.value') return 'claude-opus-4-5-20251101';
 				if (paramName === 'options') return options;
 				return undefined;
 			});
@@ -406,7 +406,7 @@ describe('LmChatAnthropic', () => {
 			const mockContext = setupMockContext();
 
 			mockContext.getNodeParameter = jest.fn().mockImplementation((paramName: string) => {
-				if (paramName === 'model.value') return 'claude-sonnet-4-20250514';
+				if (paramName === 'model.value') return 'claude-opus-4-5-20251101';
 				if (paramName === 'options') return {};
 				return undefined;
 			});
@@ -425,7 +425,7 @@ describe('LmChatAnthropic', () => {
 			const mockContext = setupMockContext();
 
 			mockContext.getNodeParameter = jest.fn().mockImplementation((paramName: string) => {
-				if (paramName === 'model.value') return 'claude-sonnet-4-20250514';
+				if (paramName === 'model.value') return 'claude-opus-4-5-20251101';
 				if (paramName === 'options') return {};
 				return undefined;
 			});

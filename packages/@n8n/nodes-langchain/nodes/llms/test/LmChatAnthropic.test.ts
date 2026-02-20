@@ -93,7 +93,7 @@ describe('LmChatAnthropic', () => {
 			const mockContext = setupMockContext({ typeVersion: 1.3 });
 
 			mockContext.getNodeParameter = jest.fn().mockImplementation((paramName: string) => {
-				if (paramName === 'model.value') return 'claude-sonnet-4-20250514';
+				if (paramName === 'model.value') return 'claude-opus-4-5-20251101';
 				if (paramName === 'options') return {};
 				return undefined;
 			});
@@ -106,7 +106,7 @@ describe('LmChatAnthropic', () => {
 			expect(MockedChatAnthropic).toHaveBeenCalledWith(
 				expect.objectContaining({
 					anthropicApiKey: 'test-api-key',
-					model: 'claude-sonnet-4-20250514',
+					model: 'claude-opus-4-5-20251101',
 					anthropicApiUrl: 'https://api.anthropic.com',
 					callbacks: expect.arrayContaining([expect.any(Object)]),
 					onFailedAttempt: expect.any(Function),
@@ -128,7 +128,7 @@ describe('LmChatAnthropic', () => {
 			const mockContext = setupMockContext({ typeVersion: 1.2 });
 
 			mockContext.getNodeParameter = jest.fn().mockImplementation((paramName: string) => {
-				if (paramName === 'model') return 'claude-3-5-sonnet-20240620';
+				if (paramName === 'model') return 'claude-opus-4-5-20251101';
 				if (paramName === 'options') return {};
 				return undefined;
 			});
@@ -140,7 +140,7 @@ describe('LmChatAnthropic', () => {
 			expect(MockedChatAnthropic).toHaveBeenCalledWith(
 				expect.objectContaining({
 					anthropicApiKey: 'test-api-key',
-					model: 'claude-3-5-sonnet-20240620',
+					model: 'claude-opus-4-5-20251101',
 					anthropicApiUrl: 'https://api.anthropic.com',
 					callbacks: expect.arrayContaining([expect.any(Object)]),
 					onFailedAttempt: expect.any(Function),
@@ -164,7 +164,7 @@ describe('LmChatAnthropic', () => {
 			});
 
 			mockContext.getNodeParameter = jest.fn().mockImplementation((paramName: string) => {
-				if (paramName === 'model.value') return 'claude-sonnet-4-20250514';
+				if (paramName === 'model.value') return 'claude-opus-4-5-20251101';
 				if (paramName === 'options') return {};
 				return undefined;
 			});
@@ -174,7 +174,7 @@ describe('LmChatAnthropic', () => {
 			expect(MockedChatAnthropic).toHaveBeenCalledWith(
 				expect.objectContaining({
 					anthropicApiKey: 'test-api-key',
-					model: 'claude-sonnet-4-20250514',
+					model: 'claude-opus-4-5-20251101',
 					anthropicApiUrl: customURL,
 					callbacks: expect.arrayContaining([expect.any(Object)]),
 					onFailedAttempt: expect.any(Function),
@@ -199,7 +199,7 @@ describe('LmChatAnthropic', () => {
 			});
 
 			mockContext.getNodeParameter = jest.fn().mockImplementation((paramName: string) => {
-				if (paramName === 'model.value') return 'claude-sonnet-4-20250514';
+				if (paramName === 'model.value') return 'claude-opus-4-5-20251101';
 				if (paramName === 'options') return {};
 				return undefined;
 			});
@@ -209,7 +209,7 @@ describe('LmChatAnthropic', () => {
 			expect(MockedChatAnthropic).toHaveBeenCalledWith(
 				expect.objectContaining({
 					anthropicApiKey: 'test-api-key',
-					model: 'claude-sonnet-4-20250514',
+					model: 'claude-opus-4-5-20251101',
 					anthropicApiUrl: 'https://api.anthropic.com',
 					callbacks: expect.arrayContaining([expect.any(Object)]),
 					onFailedAttempt: expect.any(Function),
@@ -236,7 +236,7 @@ describe('LmChatAnthropic', () => {
 			};
 
 			mockContext.getNodeParameter = jest.fn().mockImplementation((paramName: string) => {
-				if (paramName === 'model.value') return 'claude-sonnet-4-20250514';
+				if (paramName === 'model.value') return 'claude-opus-4-5-20251101';
 				if (paramName === 'options') return options;
 				return undefined;
 			});
@@ -246,7 +246,7 @@ describe('LmChatAnthropic', () => {
 			expect(MockedChatAnthropic).toHaveBeenCalledWith(
 				expect.objectContaining({
 					anthropicApiKey: 'test-api-key',
-					model: 'claude-sonnet-4-20250514',
+					model: 'claude-opus-4-5-20251101',
 					maxTokens: 1000,
 					temperature: 0.8,
 					topK: 5,
@@ -273,7 +273,7 @@ describe('LmChatAnthropic', () => {
 			};
 
 			mockContext.getNodeParameter = jest.fn().mockImplementation((paramName: string) => {
-				if (paramName === 'model.value') return 'claude-sonnet-4-20250514';
+				if (paramName === 'model.value') return 'claude-opus-4-5-20251101';
 				if (paramName === 'options') return options;
 				return undefined;
 			});
@@ -283,7 +283,7 @@ describe('LmChatAnthropic', () => {
 			expect(MockedChatAnthropic).toHaveBeenCalledWith(
 				expect.objectContaining({
 					anthropicApiKey: 'test-api-key',
-					model: 'claude-sonnet-4-20250514',
+					model: 'claude-opus-4-5-20251101',
 					maxTokens: 4096,
 					anthropicApiUrl: 'https://api.anthropic.com',
 					callbacks: expect.arrayContaining([expect.any(Object)]),
@@ -311,7 +311,7 @@ describe('LmChatAnthropic', () => {
 			const mockContext = setupMockContext();
 
 			mockContext.getNodeParameter = jest.fn().mockImplementation((paramName: string) => {
-				if (paramName === 'model.value') return 'claude-sonnet-4-20250514';
+				if (paramName === 'model.value') return 'claude-opus-4-5-20251101';
 				if (paramName === 'options') return {};
 				return undefined;
 			});
@@ -327,7 +327,7 @@ describe('LmChatAnthropic', () => {
 			const mockContext = setupMockContext();
 
 			mockContext.getNodeParameter = jest.fn().mockImplementation((paramName: string) => {
-				if (paramName === 'model.value') return 'claude-sonnet-4-20250514';
+				if (paramName === 'model.value') return 'claude-opus-4-5-20251101';
 				if (paramName === 'options') return {};
 				return undefined;
 			});
@@ -348,7 +348,7 @@ describe('LmChatAnthropic', () => {
 			});
 
 			mockContext.getNodeParameter = jest.fn().mockImplementation((paramName: string) => {
-				if (paramName === 'model.value') return 'claude-sonnet-4-20250514';
+				if (paramName === 'model.value') return 'claude-opus-4-5-20251101';
 				if (paramName === 'options') return {};
 				return undefined;
 			});
@@ -383,7 +383,7 @@ describe('LmChatAnthropic', () => {
 			});
 
 			mockContext.getNodeParameter = jest.fn().mockImplementation((paramName: string) => {
-				if (paramName === 'model.value') return 'claude-sonnet-4-20250514';
+				if (paramName === 'model.value') return 'claude-opus-4-5-20251101';
 				if (paramName === 'options') return {};
 				return undefined;
 			});
@@ -393,7 +393,7 @@ describe('LmChatAnthropic', () => {
 			expect(MockedChatAnthropic).toHaveBeenCalledWith(
 				expect.objectContaining({
 					anthropicApiKey: 'test-api-key',
-					model: 'claude-sonnet-4-20250514',
+					model: 'claude-opus-4-5-20251101',
 					anthropicApiUrl: customURL,
 					callbacks: expect.arrayContaining([expect.any(Object)]),
 					onFailedAttempt: expect.any(Function),
@@ -432,20 +432,20 @@ describe('LmChatAnthropic', () => {
 			it('should return all models sorted by creation date', async () => {
 				const mockModels = [
 					{
-						id: 'claude-2',
-						display_name: 'Claude 2',
+						id: 'claude-opus-4-5-20251101',
+						display_name: 'Claude Opus 4.5',
 						type: 'chat',
 						created_at: '2023-01-01T00:00:00Z',
 					},
 					{
-						id: 'claude-3-opus-20240229',
-						display_name: 'Claude 3 Opus',
+						id: 'claude-opus-4-5-20251101',
+						display_name: 'Claude Opus 4.5',
 						type: 'chat',
 						created_at: '2024-02-29T00:00:00Z',
 					},
 					{
-						id: 'claude-3-sonnet-20240229',
-						display_name: 'Claude 3 Sonnet',
+						id: 'claude-opus-4-5-20251101',
+						display_name: 'Claude Opus 4.5',
 						type: 'chat',
 						created_at: '2024-02-29T00:00:00Z',
 					},
@@ -468,28 +468,28 @@ describe('LmChatAnthropic', () => {
 
 				expect(result.results).toHaveLength(3);
 				// Verify sorted by creation date (newest first)
-				expect(result.results[0].value).toBe('claude-3-opus-20240229');
-				expect(result.results[0].name).toBe('Claude 3 Opus');
-				expect(result.results[2].value).toBe('claude-2');
+				expect(result.results[0].value).toBe('claude-opus-4-5-20251101');
+				expect(result.results[0].name).toBe('Claude Opus 4.5');
+				expect(result.results[2].value).toBe('claude-opus-4-5-20251101');
 			});
 
 			it('should filter models by search term', async () => {
 				const mockModels = [
 					{
-						id: 'claude-2',
-						display_name: 'Claude 2',
+						id: 'claude-opus-4-5-20251101',
+						display_name: 'Claude Opus 4.5',
 						type: 'chat',
 						created_at: '2023-01-01T00:00:00Z',
 					},
 					{
-						id: 'claude-3-opus-20240229',
-						display_name: 'Claude 3 Opus',
+						id: 'claude-opus-4-5-20251101',
+						display_name: 'Claude Opus 4.5',
 						type: 'chat',
 						created_at: '2024-02-29T00:00:00Z',
 					},
 					{
-						id: 'claude-3-sonnet-20240229',
-						display_name: 'Claude 3 Sonnet',
+						id: 'claude-opus-4-5-20251101',
+						display_name: 'Claude Opus 4.5',
 						type: 'chat',
 						created_at: '2024-02-29T00:00:00Z',
 					},
@@ -504,15 +504,15 @@ describe('LmChatAnthropic', () => {
 				const result = await searchModels.call(mockLoadContext, 'opus');
 
 				expect(result.results).toHaveLength(1);
-				expect(result.results[0].value).toBe('claude-3-opus-20240229');
-				expect(result.results[0].name).toBe('Claude 3 Opus');
+				expect(result.results[0].value).toBe('claude-opus-4-5-20251101');
+				expect(result.results[0].name).toBe('Claude Opus 4.5');
 			});
 
 			it('should filter models case-insensitively', async () => {
 				const mockModels = [
 					{
-						id: 'claude-3-sonnet-20240229',
-						display_name: 'Claude 3 Sonnet',
+						id: 'claude-opus-4-5-20251101',
+						display_name: 'Claude Opus 4.5',
 						type: 'chat',
 						created_at: '2024-02-29T00:00:00Z',
 					},
@@ -527,7 +527,7 @@ describe('LmChatAnthropic', () => {
 				const result = await searchModels.call(mockLoadContext, 'SONNET');
 
 				expect(result.results).toHaveLength(1);
-				expect(result.results[0].value).toBe('claude-3-sonnet-20240229');
+				expect(result.results[0].value).toBe('claude-opus-4-5-20251101');
 			});
 
 			it('should use custom URL from credentials', async () => {

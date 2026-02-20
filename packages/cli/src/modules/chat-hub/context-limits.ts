@@ -93,14 +93,6 @@ export const maxContextWindowTokens: Record<ChatHubLLMProvider, Record<string, n
 	},
 	anthropic: {
 		'claude-opus-4-5-20251101': 200000,
-		'claude-haiku-4-5-20251001': 200000,
-		'claude-sonnet-4-5-20250929': 200000,
-		'claude-opus-4-1-20250805': 200000,
-		'claude-opus-4-20250514': 200000,
-		'claude-sonnet-4-20250514': 200000,
-		'claude-3-7-sonnet-20250219': 200000,
-		'claude-3-5-haiku-20241022': 200000,
-		'claude-3-haiku-20240307': 200000,
 	},
 	google: {
 		'models/aqa': 0,

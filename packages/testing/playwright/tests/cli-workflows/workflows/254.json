@@ -341,7 +341,7 @@
 		},
 		{
 			"parameters": {
-				"model": "claude-3-haiku-20240307",
+				"model": "claude-opus-4-5-20251101",
 				"options": {
 					"temperature": 0.1
 				}
@@ -360,7 +360,7 @@
 		},
 		{
 			"parameters": {
-				"model": "claude-3-haiku-20240307",
+				"model": "claude-opus-4-5-20251101",
 				"options": {
 					"temperature": 0.1
 				}
@@ -379,7 +379,7 @@
 		},
 		{
 			"parameters": {
-				"model": "claude-3-haiku-20240307",
+				"model": "claude-opus-4-5-20251101",
 				"options": {
 					"temperature": 0.1
 				}
@@ -556,7 +556,7 @@
 		},
 		{
 			"parameters": {
-				"model": "claude-3-haiku-20240307",
+				"model": "claude-opus-4-5-20251101",
 				"options": {
 					"temperature": 0.1
 				}
@@ -675,7 +675,7 @@
 		},
 		{
 			"parameters": {
-				"model": "claude-3-haiku-20240307",
+				"model": "claude-opus-4-5-20251101",
 				"options": {
 					"temperature": 0.1
 				}

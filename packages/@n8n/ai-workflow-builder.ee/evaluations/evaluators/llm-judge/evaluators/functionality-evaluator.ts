@@ -146,7 +146,7 @@ This is like a user asking to "cut wood with a hammer" - using a saw instead is 
 When evaluating model choices:
 1. **Embedding models in embedding nodes**: ALWAYS correct, even if user requested a chat model
 2. **Same family, different model**: Minor at most (e.g., user says gpt-4, workflow uses gpt-4o-mini)
-3. **Same provider, different model**: Minor at most (e.g., user says claude-3-opus, workflow uses claude-3-sonnet)
+3. **Same provider, different model**: Minor at most (e.g., user says claude-opus-4-5, workflow uses claude-opus-4-5)
 4. **Different provider entirely**: Minor at most, unless user explicitly required a specific provider for a business reason
 
 **Examples of CORRECT behavior (not violations):**

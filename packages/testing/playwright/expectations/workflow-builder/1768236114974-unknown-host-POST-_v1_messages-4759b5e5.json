@@ -6,7 +6,7 @@
 			"contentType": "application/json",
 			"type": "JSON",
 			"json": {
-				"model": "claude-sonnet-4-5",
+				"model": "claude-opus-4-5",
 				"temperature": 0,
 				"stream": false,
 				"max_tokens": 16000,
@@ -86,7 +86,7 @@
 			"contentType": "application/json",
 			"type": "JSON",
 			"json": {
-				"model": "claude-sonnet-4-5-20250929",
+				"model": "claude-opus-4-5-20251101",
 				"id": "msg_015gGoaENcqQ1xwWwrBPk3k7",
 				"type": "message",
 				"role": "assistant",

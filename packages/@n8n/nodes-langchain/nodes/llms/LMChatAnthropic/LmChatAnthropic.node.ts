@@ -23,49 +23,13 @@ const modelField: INodeProperties = {
 	// eslint-disable-next-line n8n-nodes-base/node-param-options-type-unsorted-items
 	options: [
 		{
-			name: 'Claude 3.5 Sonnet(20241022)',
-			value: 'claude-3-5-sonnet-20241022',
-		},
-		{
-			name: 'Claude 3 Opus(20240229)',
-			value: 'claude-3-opus-20240229',
-		},
-		{
-			name: 'Claude 3.5 Sonnet(20240620)',
-			value: 'claude-3-5-sonnet-20240620',
-		},
-		{
-			name: 'Claude 3 Sonnet(20240229)',
-			value: 'claude-3-sonnet-20240229',
-		},
-		{
-			name: 'Claude 3.5 Haiku(20241022)',
-			value: 'claude-3-5-haiku-20241022',
-		},
-		{
-			name: 'Claude 3 Haiku(20240307)',
-			value: 'claude-3-haiku-20240307',
-		},
-		{
-			name: 'LEGACY: Claude 2',
-			value: 'claude-2',
-		},
-		{
-			name: 'LEGACY: Claude 2.1',
-			value: 'claude-2.1',
-		},
-		{
-			name: 'LEGACY: Claude Instant 1.2',
-			value: 'claude-instant-1.2',
-		},
-		{
-			name: 'LEGACY: Claude Instant 1',
-			value: 'claude-instant-1',
+			name: 'Claude Opus 4.5',
+			value: 'claude-opus-4-5-20251101',
 		},
 	],
 	description:
 		'The model which will generate the completion. <a href="https://docs.anthropic.com/claude/docs/models-overview">Learn more</a>.',
-	default: 'claude-2',
+	default: 'claude-opus-4-5-20251101',
 };
 
 const MIN_THINKING_BUDGET = 1024;
@@ -127,7 +91,7 @@ export class LmChatAnthropic implements INodeType {
 			},
 			{
 				...modelField,
-				default: 'claude-3-sonnet-20240229',
+				default: 'claude-opus-4-5-20251101',
 				displayOptions: {
 					show: {
 						'@version': [1.1],
@@ -136,7 +100,7 @@ export class LmChatAnthropic implements INodeType {
 			},
 			{
 				...modelField,
-				default: 'claude-3-5-sonnet-20240620',
+				default: 'claude-opus-4-5-20251101',
 				options: (modelField.options ?? []).filter(
 					(o): o is INodePropertyOptions => 'name' in o && !o.name.toString().startsWith('LEGACY'),
 				),
@@ -152,8 +116,8 @@ export class LmChatAnthropic implements INodeType {
 				type: 'resourceLocator',
 				default: {
 					mode: 'list',
-					value: 'claude-sonnet-4-5-20250929',
-					cachedResultName: 'Claude Sonnet 4.5',
+					value: 'claude-opus-4-5-20251101',
+					cachedResultName: 'Claude Opus 4.5',
 				},
 				required: true,
 				modes: [

@@ -108,7 +108,7 @@
 			"parameters": {
 				"model": {
 					"__rl": true,
-					"value": "claude-3-7-sonnet-20250219",
+					"value": "claude-opus-4-5-20251101",
 					"mode": "list",
 					"cachedResultName": "Claude 3.7 Sonnet"
 				},

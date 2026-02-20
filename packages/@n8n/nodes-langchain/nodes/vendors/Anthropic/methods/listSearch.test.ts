@@ -7,10 +7,10 @@ import * as transport from '../transport';
 const mockResponse = {
 	data: [
 		{
-			id: 'claude-opus-4-20250514',
+			id: 'claude-opus-4-5-20251101',
 		},
 		{
-			id: 'claude-sonnet-4-20250514',
+			id: 'claude-opus-4-5-20251101',
 		},
 	],
 };
@@ -32,12 +32,12 @@ describe('Anthropic -> listSearch', () => {
 			expect(result).toEqual({
 				results: [
 					{
-						name: 'claude-opus-4-20250514',
-						value: 'claude-opus-4-20250514',
+						name: 'claude-opus-4-5-20251101',
+						value: 'claude-opus-4-5-20251101',
 					},
 					{
-						name: 'claude-sonnet-4-20250514',
-						value: 'claude-sonnet-4-20250514',
+						name: 'claude-opus-4-5-20251101',
+						value: 'claude-opus-4-5-20251101',
 					},
 				],
 			});
@@ -51,8 +51,8 @@ describe('Anthropic -> listSearch', () => {
 			expect(result).toEqual({
 				results: [
 					{
-						name: 'claude-sonnet-4-20250514',
-						value: 'claude-sonnet-4-20250514',
+						name: 'claude-opus-4-5-20251101',
+						value: 'claude-opus-4-5-20251101',
 					},
 				],
 			});

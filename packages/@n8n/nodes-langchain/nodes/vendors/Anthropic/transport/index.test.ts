@@ -19,7 +19,7 @@ describe('Anthropic transport', () => {
 				'Content-Type': 'application/json',
 			},
 			body: {
-				model: 'claude-sonnet-4-20250514',
+				model: 'claude-opus-4-5-20251101',
 				messages: [{ role: 'user', content: 'Hello' }],
 			},
 			qs: {
@@ -34,7 +34,7 @@ describe('Anthropic transport', () => {
 				url: 'https://custom-url.com/v1/messages',
 				json: true,
 				body: {
-					model: 'claude-sonnet-4-20250514',
+					model: 'claude-opus-4-5-20251101',
 					messages: [{ role: 'user', content: 'Hello' }],
 				},
 				qs: {

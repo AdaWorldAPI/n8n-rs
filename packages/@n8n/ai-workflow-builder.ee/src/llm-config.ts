@@ -34,7 +34,7 @@ export const gpt52 = async (config: LLMProviderConfig) => {
 export const anthropicClaudeSonnet45 = async (config: LLMProviderConfig) => {
 	const { ChatAnthropic } = await import('@langchain/anthropic');
 	const model = new ChatAnthropic({
-		model: 'claude-sonnet-4-5-20250929',
+		model: 'claude-opus-4-5-20251101',
 		apiKey: config.apiKey,
 		temperature: 0,
 		maxTokens: MAX_OUTPUT_TOKENS,
@@ -55,7 +55,7 @@ export const anthropicClaudeSonnet45 = async (config: LLMProviderConfig) => {
 export const anthropicClaudeSonnet45Think = async (config: LLMProviderConfig) => {
 	const { ChatAnthropic } = await import('@langchain/anthropic');
 	const model = new ChatAnthropic({
-		model: 'claude-sonnet-4-5-20250929',
+		model: 'claude-opus-4-5-20251101',
 		apiKey: config.apiKey,
 		maxTokens: MAX_OUTPUT_TOKENS,
 		anthropicApiUrl: config.baseUrl,
@@ -81,7 +81,7 @@ export const anthropicClaudeSonnet45Think = async (config: LLMProviderConfig) =>
 export const anthropicHaiku45 = async (config: LLMProviderConfig) => {
 	const { ChatAnthropic } = await import('@langchain/anthropic');
 	const model = new ChatAnthropic({
-		model: 'claude-haiku-4-5-20251001',
+		model: 'claude-opus-4-5-20251101',
 		apiKey: config.apiKey,
 		temperature: 0,
 		maxTokens: MAX_OUTPUT_TOKENS,
@@ -187,9 +187,9 @@ export const devstral = createOpenRouterModel('mistralai/devstral-small');
 export type ModelId =
 	// Native models
 	| 'claude-opus-4.5'
-	| 'claude-sonnet-4.5'
-	| 'claude-sonnet-4.5-think'
-	| 'claude-haiku-4.5'
+	| 'claude-opus-4.5'
+	| 'claude-opus-4-5-thinking'
+	| 'claude-opus-4.5'
 	| 'gpt-5.2'
 	// OpenRouter models
 	| 'glm-4.7'
@@ -207,9 +207,9 @@ export const MODEL_FACTORIES: Record<
 > = {
 	// Native models
 	'claude-opus-4.5': anthropicClaudeOpus45,
-	'claude-sonnet-4.5': anthropicClaudeSonnet45,
-	'claude-sonnet-4.5-think': anthropicClaudeSonnet45Think,
-	'claude-haiku-4.5': anthropicHaiku45,
+	'claude-opus-4.5': anthropicClaudeSonnet45,
+	'claude-opus-4-5-thinking': anthropicClaudeSonnet45Think,
+	'claude-opus-4.5': anthropicHaiku45,
 	'gpt-5.2': gpt52,
 	// OpenRouter models
 	'glm-4.7': glm47,
@@ -248,8 +248,8 @@ export function getApiKeyEnvVar(modelId: ModelId): string {
 export const AVAILABLE_MODELS: readonly ModelId[] = [
 	// Native models
 	'claude-opus-4.5',
-	'claude-sonnet-4.5',
-	'claude-haiku-4.5',
+	'claude-opus-4.5',
+	'claude-opus-4.5',
 	'gpt-5.2',
 	// OpenRouter models
 	'glm-4.7',
@@ -262,4 +262,4 @@ export const AVAILABLE_MODELS: readonly ModelId[] = [
 /**
  * Default model used when no model is specified.
  */
-export const DEFAULT_MODEL: ModelId = 'claude-sonnet-4.5';
+export const DEFAULT_MODEL: ModelId = 'claude-opus-4.5';

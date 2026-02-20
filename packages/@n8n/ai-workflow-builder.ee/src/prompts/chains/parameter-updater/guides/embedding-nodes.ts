@@ -10,7 +10,7 @@ Embedding nodes (nodes with "embeddings" in their type name) MUST use embedding 
 ### Common Mistake to Avoid
 NEVER configure an embedding node with chat models like:
 - gpt-4, gpt-4o, gpt-4o-mini, gpt-3.5-turbo (OpenAI chat models)
-- claude-3-opus, claude-3-sonnet (Anthropic chat models)
+- claude-opus-4-5, claude-opus-4-5 (Anthropic chat models)
 - gemini-pro, gemini-1.5-pro (Google chat models)
 - llama-3, mixtral (general LLM models)
 
