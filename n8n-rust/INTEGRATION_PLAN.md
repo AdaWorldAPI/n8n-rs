@@ -60,8 +60,11 @@ two new capability layers:
 | Credential Encryption | Not Started | 0% |
 | Webhook Handling | Not Started | 0% |
 | 1:1 REST API Surface | Not Started | 0% |
-| **A2A RAG Orchestration** | **Planning** | 0% |
-| **Chat Awareness GUI Backend** | **Planning** | 0% |
+| **A2A RAG Orchestration** | **In Progress** | 30% |
+| **Chat Awareness GUI Backend** | **In Progress** | 25% |
+| Semantic Model Registry | **Done** | 100% |
+| Chat Session + Intent Parser | **Done** | 100% |
+| 90° Horizontal Sweep (rustynum-arrow) | **Done** | 100% |
 
 ---
 
@@ -1751,6 +1754,98 @@ n8n-rs/                          (after cleanup)
 
 ---
 
-*Document Version: 2.0*
+---
+
+## Part XI: Implementation Status — Cross-Repo Exploration Findings
+
+> Added 2026-02-23 after comprehensive 7-repo exploration.
+
+### Implementation Audit Results
+
+| Repo | LOC | Tests | Key Finding |
+|------|-----|-------|-------------|
+| **n8n-rs** | 25,332 | 49 | Phase 1 100% complete; 19 built-in executors |
+| **ladybug-rs** | ~122,000 | 1,016 | CognitiveService 3 modes working; NARS loop complete |
+| **crewai-rust** | 67,206 | 578 | MetaOrchestrator feature-complete; A2A client-only (no server) |
+| **VSACLIP** | ~2,500 | ~30 | 3-stage HDR cascade done; 16384-bit WideContainers done |
+| **rustynum** | ~5,000+ | 36+8=44 | BF16 Hamming AVX-512 done; indexed_cascade 296× done; **horizontal sweep NEW** |
+| **neo4j-rs** | ~4,000+ | — | Cypher parser+planner+executor complete; CogRecord8K CogOp |
+| **CAMEO** | ~15,000+ | 10 failures | BindSpace, CogRedis, UnifiedEngine; lance API mismatch |
+| **openclaw** | 404,000+ (TS) | — | Full AI assistant, 20+ channels |
+| **openclaw-rs** | Plan only | — | 1459-line transcoding plan |
+
+### Implemented This Session
+
+#### 1. 90-Degree Horizontal Sweep (`rustynum-arrow/src/horizontal_sweep.rs`)
+
+**770 lines, 8 tests, committed as `bb1e20a` on rustynum**
+
+- `horizontal_sweep()` — full column scan with progressive early exit
+- `horizontal_sweep_filtered()` — pre-filtered candidate set (post fragment prune)
+- `hybrid_cascade_sweep()` — HDC sweep + dense evaluation on survivors
+- `HorizontalSweepConfig` — word_bytes, first_check_words, check_interval, safety_margin
+- `HorizontalSweepStats` — total_candidates, avg_words_per_candidate, alive_after_first_check
+- Zero false negatives proven via exhaustive brute-force agreement test
+
+#### 2. SemanticModelRegistry (`n8n-contract/src/semantic_model.rs`)
+
+**390 lines, 8 tests, committed as `f410b7a7` on n8n-rs**
+
+- `SemanticModel` → `SemanticEntity` → `SemanticField` hierarchy with serde
+- `AgentCapability` for domain/entity routing with proficiency scoring
+- `route_by_domain()` / `route_by_entity()` for A2A agent selection
+- `context_for_domains()` for LLM anti-hallucination context injection
+- Full serde roundtrip + relationship extraction
+
+#### 3. ChatSession Awareness Backend (`n8n-contract/src/chat_session.rs`)
+
+**500 lines, 11 tests, committed as `f410b7a7` on n8n-rs**
+
+- `parse_intent()` — keyword-based intent classification (Query/Command/Reflection/Delegate/Conversation)
+- `AwarenessCockpit` — NARS expectation, DK-gap, thinking style, flow state, causal rung
+- `ChatSession` — message history, domain tracking, multi-agent participation
+- `ChatMessage` — user/assistant/agent messages with awareness metadata
+- Chat GUI as agent `0x0C:00` — first-class BindSpace participant
+
+### Identified Gaps (Remaining)
+
+| Gap | Impact | Where to Build |
+|-----|--------|---------------|
+| **A2A Server endpoint** | crewai-rust can delegate OUT but can't receive IN | crewai-rust |
+| **JITSON/Cranelift repos** | Not cloned locally | Need vendor import |
+| **Neo4jSemanticSurface** | Wrapper connecting neo4j-rs to n8n-contract | n8n-contract |
+| **CAMEO lance API mismatch** | 10 test failures in CAMEO | CAMEO vendor=2.1 vs Cargo.toml=1.0 |
+| **n8n-nodes provider crate** | 304+ TS providers need transcoding | New crate |
+| **3D SPO tensor implementation** | Planned in Part VII, not built | rustynum-core |
+| **Hybrid Crystal (16kbit HDC + BF16)** | Combining two distance metrics | VSACLIP + rustynum |
+
+### Architecture Verification
+
+**Awareness Loop (Part V): CONFIRMED COMPLETE**
+
+```
+NARS (truth.rs) → CognitiveKernel (L9) → CognitiveFabric → ThinkingStyleBridge (36→12)
+→ FieldModulation → CognitiveService (3 modes) → CognitiveSnapshot
+→ AgentBlackboard (DK-gap, flow state) → MetaOrchestrator (affinity, handover)
+→ PersonaRegistry (compatibility) → A2A (thinking_style_hint)
+→ AffinityEdge update → next cycle
+```
+
+All 1,016 ladybug-rs tests passing. All 578 crewai-rust tests passing.
+
+**Indexed Cascade (Part VIII): 90° HORIZONTAL SWEEP NOW IMPLEMENTED**
+
+```
+Stage 0: META FragmentIndex → triangle inequality prune (existing)
+Stage 1: 90° Horizontal HDC Sweep → word-by-word early exit (NEW)
+Stage 2: NARS/structural gate on META fields (planned)
+Stage 3: Dense BF16 evaluation on EMBED for ~0.3% survivors (NEW: hybrid_cascade_sweep)
+```
+
+All 44 rustynum-arrow tests passing (36 existing + 8 new).
+
+---
+
+*Document Version: 3.0*
 *Last Updated: 2026-02-23*
 *Branch: claude/vsaclip-hamming-recognition-y0b94*
