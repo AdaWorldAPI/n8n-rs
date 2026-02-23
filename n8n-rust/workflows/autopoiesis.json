@@ -46,7 +46,7 @@
     {
       "id": "visceral_composite",
       "type": "transform",
-      "description": "Compute visceral arousal composite from body + felt",
+      "description": "Compute visceral signal composite from body + felt",
       "config": {
         "operation": "merge",
         "sources": ["body_state", "qualia_channels"],
