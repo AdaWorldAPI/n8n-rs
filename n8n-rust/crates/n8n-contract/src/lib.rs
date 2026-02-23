@@ -31,6 +31,8 @@ pub mod ladybug_router;
 pub mod executors;
 pub mod interface_gateway;
 pub mod impact_gate;
+pub mod semantic_model;
+pub mod chat_session;
 
 /// Legacy DTO types for standalone mode (TruthValue, wire opcode constants).
 /// Used by impact_gate and interface_gateway when ladybug feature is off.
@@ -55,6 +57,14 @@ pub use ladybug_router::LadybugRouter;
 pub use executors::{CrewAgentExecutor, LadybugResonateExecutor, LadybugCollapseExecutor};
 pub use interface_gateway::{InterfaceGateway, InterfaceDefinition, InterfaceProtocol, ImpactLevel};
 pub use impact_gate::{ImpactGate, GateDecision, RoleDefinition};
+pub use semantic_model::{
+    SemanticModelRegistry, SemanticModel, SemanticEntity, SemanticField,
+    AgentCapability,
+};
+pub use chat_session::{
+    ChatSession, ChatMessage, ChatIntent, ParsedIntent, AwarenessCockpit,
+    parse_intent,
+};
 
 #[cfg(feature = "ladybug")]
 pub use free_will::{FreeWillPipeline, ModificationProposal, ModificationType, ModificationLimits};
