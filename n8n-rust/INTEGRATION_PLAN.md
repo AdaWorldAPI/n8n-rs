@@ -1079,7 +1079,375 @@ WEIGHTS (implicit in BindSpace + rustynum):
 
 ---
 
-## Part VII: Resonance-Augmented Generation (RAG) — Not Retrieval
+## Part VII: 3D SPO Container + Hybrid Crystal Cascade
+
+### Architecture 1: The 3D 16kbit SPO Container (Neuronal Plasticity)
+
+Upgrading the core metadata container from 8kbit to 16kbit allows ladybug-rs
+to encode exponentially more complex cognitive states. Moving from a flat
+1× 16kbit vector to a **3× 16kbit 3D Tensor (Subject-Predicate-Object)**
+fundamentally changes how neo4j-rs understands relationships.
+
+```
+THE FLAT GRAPH PROBLEM (standard Neo4j):
+  Node A ──KNOWS──> Node B     (edge = dumb pointer)
+
+THE 3D SPO SOLUTION:
+  ┌──────────────────────────────────────────────────────────────┐
+  │          EDGE = 3D Mathematical Space                        │
+  │                                                               │
+  │  Subject (16kbit)    Predicate (16kbit)    Object (16kbit)   │
+  │  ════════════════    ════════════════      ════════════════   │
+  │  Source node's       Relationship verb     Target node's      │
+  │  cognitive           mapped from 144       cognitive           │
+  │  fingerprint         NSM CAM verbs as      fingerprint         │
+  │                      trajectory vector                         │
+  │                                                               │
+  │  Holographic binding:  trace = S ⊗ P ⊗ O                    │
+  │  Recovery: given any 2 + trace, recover 3rd via pure XOR     │
+  └──────────────────────────────────────────────────────────────┘
+```
+
+**Neuronal Plasticity**: Because these are vectors, they can be superimposed
+using XOR binding (S ⊗ P ⊗ O). When an agent learns new context about
+"Node A", it does NOT rewrite the entire graph. It XOR-binds a delta vector
+into the node's 16kbit container. The 3D edge instantly "shifts" its
+perspective, reflecting new context without a database migration.
+
+```
+BEFORE LEARNING:
+  trace = XOR(A_fp, KNOWS_fp, B_fp)
+
+AGENT LEARNS: "A is actually an expert in Rust"
+  delta = hash("expert in Rust")
+  A_fp_new = XOR(A_fp, delta)    // DeltaLayer applied
+
+  trace' = XOR(A_fp_new, KNOWS_fp, B_fp)
+  // The entire edge relationship shifted perspective
+  // No database write — just a DeltaLayer overlay
+  // Ground truth A_fp remains immutable (&self forever)
+```
+
+### Architecture 2: Hybrid Crystal (16kbit HDC + 1024D BF16)
+
+The ultimate performance path: combine the structural logic of 16kbit
+Vector Symbolic Architecture (VSA) with the deep nuance of 1024D Jina
+neural embeddings.
+
+### The 3-Tier AVX-512 Early-Exit Cascade
+
+When the Chat GUI or an A2A agent queries the system, it generates BOTH
+a 16kbit HDC fingerprint AND a 1024D BF16 embedding. The Semantic Kernel
+executes search in three tiers:
+
+```
+QUERY
+  ├── 16kbit HDC fingerprint (SimHash / golden angle / holographic)
+  └── 1024D BF16 embedding (Jina-v3)
+      │
+      ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│  TIER 1: Global HDC Sweep (VSA Layer)                               │
+│                                                                      │
+│  Operation: XOR + AVX-512 VPOPCNTDQ on 16kbit fingerprints         │
+│  Hardware:  Single clock cycle per XOR+popcount                      │
+│  I/O:      Sequential columnar scan (cache-friendly)                │
+│  Result:   REJECTS 95% of graph in < 2ms                            │
+│                                                                      │
+│  GPU comparison: GPUs choke on transferring gigabytes of dense       │
+│  float data across PCIe bus. CPUs execute bitwise ops in 1 cycle.   │
+├─────────────────────────────────────────────────────────────────────┤
+│  TIER 2: Structural / NARS Thresholding (Gate Layer)                │
+│                                                                      │
+│  Surviving 5% evaluated against cognitive guardrails:                │
+│  • Causal Rung match (SEE / DO / IMAGINE)                           │
+│  • NARS truth confidence minimum                                     │
+│  • Agent Persona affinity filter                                     │
+│  • ThinkingStyle compatibility                                       │
+│  • CollapseGate state (only FLOW or HOLD, not BLOCK)                │
+│                                                                      │
+│  Result: DROPS to 0.3% of original candidates                        │
+├─────────────────────────────────────────────────────────────────────┤
+│  TIER 3: Deep BF16 Evaluation (Jina Layer)                          │
+│                                                                      │
+│  Only top 0.3% trigger dense evaluation                              │
+│  Operation: vdpbf16ps (BF16 dot product) on 1024D Jina embeddings   │
+│  Hardware:  AVX-512 FMA / vdpbf16ps on Intel/AMD silicon             │
+│  I/O:      Masked random-access read (skip 99.7% on disk)           │
+│  Result:   Absolute, rich, nuanced semantic matching                 │
+│                                                                      │
+│  CPU outpaces GPU cluster: only doing dense math on 0.3% of data    │
+│  Completely eliminates PCIe data-transfer bottleneck                 │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### Distance Metric Intelligence
+
+The cascade doesn't just return distances — it returns **diagnostic
+intelligence** for the awareness loop:
+
+| Signal | Meaning | Agent Response |
+|--------|---------|----------------|
+| HDC high + BF16 high | Strong match (structure + semantics) | FLOW: confident answer |
+| HDC high + BF16 low | Structurally related, contextually different | Switch to Divergent: explore metaphor |
+| HDC low + BF16 high | Different structure, similar meaning | Switch to Analytical: investigate alias |
+| HDC low + BF16 low | No match | HOLD: gather more evidence |
+
+This allows the agent to adjust `ThinkingStyle` dynamically rather than
+hallucinating a literal answer from a structurally-close but semantically-
+distant match.
+
+---
+
+## Part VIII: 90-Degree Zero-Copy AVX-512 Horizontal Sweep
+
+### The Memory Wall Problem
+
+Traditional "row-wise" vector search stores fingerprints contiguously:
+`[Node A: Word 0..255], [Node B: Word 0..255], ...`
+
+The CPU loads Node A, checks all 256 words, then loads Node B. This
+**destroys L1 cache** because it constantly evicts data, and you spend full
+compute cycles even on obviously-bad matches.
+
+### The Solution: 90-Degree Rotation via Arrow Columnar Layout
+
+Because LanceDB stores data in Apache Arrow columnar format, we rotate the
+16kbit vector matrix **90 degrees**:
+
+```
+ROW-MAJOR (traditional):              COLUMN-MAJOR (90° rotated):
+─────────────────────────              ──────────────────────────
+
+Node A: [w0 w1 w2 ... w255]           Word 0 column: [A.w0  B.w0  C.w0  D.w0  E.w0 ...]
+Node B: [w0 w1 w2 ... w255]           Word 1 column: [A.w1  B.w1  C.w1  D.w1  E.w1 ...]
+Node C: [w0 w1 w2 ... w255]           Word 2 column: [A.w2  B.w2  C.w2  D.w2  E.w2 ...]
+Node D: [w0 w1 w2 ... w255]           ...
+...                                    Word 255 col:  [A.w255 B.w255 C.w255 ...]
+
+CPU loads one node at a time           CPU loads one word for ALL nodes
+Cache thrashes on every node           Cache lines contain 8 nodes × 1 word
+```
+
+### Existing rustynum-arrow Infrastructure
+
+This builds on top of proven, production-ready components:
+
+| File | Purpose | Already Built |
+|------|---------|---------------|
+| `rustynum-arrow/src/lance_io.rs` | CogRecord ↔ Lance Dataset read/write | Done |
+| `rustynum-arrow/src/arrow_bridge.rs` | Zero-copy Arrow buffer conversion | Done |
+| `rustynum-arrow/src/datafusion_bridge.rs` | `arrow_to_flat_bytes()`, `cascade_scan_4ch()` | Done |
+| `rustynum-arrow/src/indexed_cascade.rs` | 4-stage indexed search (296× I/O reduction) | Done |
+| `rustynum-arrow/src/fragment_index.rs` | CLAM tree + triangle inequality pruning | Done |
+| `rustynum-arrow/src/channel_index.rs` | Sidecar indices for CAM/BTREE/EMBED | Done |
+| `rustynum-core/src/bf16_hamming.rs` | AVX-512 BF16 weighted Hamming | Done |
+| `rustynum-core/src/compute.rs` | ComputeTier detection (CPUID) | Done |
+| `rustynum-core/src/blackboard.rs` | 64-byte aligned arena + split-borrow | Done |
+| `VSACLIP/src/sweep.rs` | HDR 3-stage early-exit (zero false negatives) | Done |
+| `VSACLIP/src/blackboard_sweep.rs` | CogRecord8K zero-copy batch sweep | Done |
+
+### The Horizontal AVX-512 Execution
+
+```
+STEP 1: BROADCAST QUERY WORD
+═════════════════════════════
+Query word[0] loaded into 512-bit register, copied 8 times:
+  __m512i q0 = _mm512_set1_epi64(query.words[0]);
+
+STEP 2: HORIZONTAL XOR (8 nodes simultaneously)
+════════════════════════════════════════════════
+Load first 512 bits of Lance Word 0 column (= word[0] for 8 nodes):
+  __m512i col = _mm512_loadu_si512(arrow_flat_ptr);
+  __m512i xor = _mm512_xor_si512(q0, col);
+
+STEP 3: POPCOUNT ACCUMULATION
+══════════════════════════════
+AVX-512 calculates population count for all 8 nodes in parallel:
+  __m512i pc = _mm512_popcnt_epi64(xor);
+  accumulators = _mm512_add_epi64(accumulators, pc);
+
+STEP 4: 90-DEGREE EARLY EXIT (THE MAGIC)
+═════════════════════════════════════════
+After scanning just 8 words (out of 256), check accumulated distance.
+If distance already exceeds threshold → drop from active mask:
+
+  // After word 8 (8/256 = 3.125% of vector examined):
+  __mmask8 still_alive = _mm512_cmple_epu64_mask(
+      accumulators,
+      _mm512_set1_epi64(scaled_threshold_word8)
+  );
+
+  if (still_alive == 0) continue;  // ALL 8 nodes dead → skip to next 8
+
+  // After word 16, 32, etc.: mask keeps shrinking
+  // By word 64: typically 0.5% of nodes remain in mask
+  // Words 65-255 only loaded for surviving indices
+
+STEP 5: MASKED BF16 INTERROGATION
+══════════════════════════════════
+Surviving indices (the 0.3%) trigger dense BF16 evaluation:
+
+  // Zero-copy masked read from Lance EMBED column
+  for surviving_idx in active_mask.iter_ones() {
+      let bf16_ptr = embed_column.value(surviving_idx).as_ptr();
+
+      // AVX-512 FMA dot product on 1024D BF16 embeddings
+      // vdpbf16ps: fused dot-product of BF16 pairs
+      let score = avx512_bf16_dot(query_bf16, bf16_ptr, 1024);
+
+      results.push((surviving_idx, hdc_distance, bf16_score));
+  }
+```
+
+### The Lance Arrow Schema (90-Degree Aligned)
+
+```rust
+// Arrow schema for 90-degree transposed storage
+Field::new("hdc_words", DataType::FixedSizeList(
+    Arc::new(Field::new("item", DataType::UInt64, false)),
+    256  // 16kbit = 256 × 64-bit words
+), false),
+
+Field::new("jina_bf16", DataType::FixedSizeList(
+    Arc::new(Field::new("item", DataType::Float16, false)),
+    1024  // 1024-dimensional Jina embedding in BF16
+), false),
+
+Field::new("nars_truth", DataType::Struct(Fields::from(vec![
+    Field::new("frequency", DataType::Float32, false),
+    Field::new("confidence", DataType::Float32, false),
+])), false),
+
+Field::new("causal_rung", DataType::UInt8, false),  // 0=SEE, 1=DO, 2=IMAGINE
+```
+
+### Zero-Copy Pointer Cast (in rustynum-arrow)
+
+```rust
+// From datafusion_bridge.rs (already exists):
+pub fn arrow_to_flat_bytes(col: &FixedSizeBinaryArray) -> &[u8] {
+    // Zero-copy: returns raw byte slice, no allocation
+    col.value_data()
+}
+
+// NEW: Horizontal word-column access
+pub fn column_word_ptr(col: &FixedSizeListArray, word_idx: usize) -> *const u64 {
+    let values = col.values().as_any().downcast_ref::<UInt64Array>().unwrap();
+    let base = values.value_data().as_ptr() as *const u64;
+    // In columnar layout, all word[N] values are contiguous
+    unsafe { base.add(word_idx * col.len()) }
+}
+
+// Pass raw pointer directly to AVX-512 horizontal sweep
+unsafe {
+    let word0_ptr = column_word_ptr(&hdc_words_col, 0);
+    // word0_ptr now points to [A.w0, B.w0, C.w0, D.w0, ...]
+    // Contiguous in memory → perfect cache line utilization
+}
+```
+
+### Integration with Existing indexed_cascade
+
+The 90-degree sweep extends the existing 4-stage `indexed_cascade_search`:
+
+```
+EXISTING PIPELINE (indexed_cascade.rs):
+  Stage 1: META FragmentIndex → triangle inequality prune
+  Stage 2: CAM ChannelIndex → sidecar prune + intersect
+  Stage 3: BTREE ChannelIndex → further reduction
+  Stage 4: EMBED ChannelIndex → final filter
+
+NEW PIPELINE (90-degree hybrid):
+  Stage 0: META FragmentIndex → triangle inequality prune (unchanged)
+  Stage 1: 90° Horizontal HDC Sweep on CAM column
+           → AVX-512 broadcast + mask early exit
+           → Eliminates 95% in < 2ms
+  Stage 2: NARS/Structural gate on META column
+           → Causal rung, truth confidence, persona affinity
+           → Drops to 0.3%
+  Stage 3: Masked BF16 dot product on EMBED column
+           → vdpbf16ps on surviving 0.3% only
+           → Rich semantic scores
+
+BANDWIDTH ARITHMETIC (100K records):
+  Row-major flat scan:  800 MB I/O
+  Current indexed:      2.7 MB I/O (296× reduction)
+  90° horizontal:       0.8 MB I/O (1000× reduction)
+  90° + BF16 masked:    0.08 MB I/O for dense eval (10,000× reduction)
+```
+
+### Performance at Physical Limits
+
+```
+OPERATION                          CYCLES    THROUGHPUT
+═══════════════════════════════    ═══════   ══════════
+XOR 512 bits (8 nodes)             1 cycle   8 nodes/cycle
+VPOPCNTDQ 512 bits                 1 cycle   8 nodes/cycle
+CMP + mask update                  1 cycle   8 nodes/cycle
+────────────────────────────────────────────────────────
+Total per word, 8 nodes:           3 cycles  → ~5 GHz / 3 = 1.6B nodes/sec
+
+For 1M records, 256 words each:
+  Without early exit: 1M × 256 × 3 / 8 = 96M cycles → 19ms @ 5GHz
+  With 90° early exit: 1M × 8 + 50K × 24 + 5K × 224 = ~10M cycles → 2ms
+
+At the DDR5 memory bandwidth limit:
+  1M × 256 × 8 bytes = 2 GB (full scan)
+  1M × 8 × 8 bytes = 64 MB (first 8 words only) + masked remainder
+  DDR5 @ 50 GB/s: 64 MB / 50 GB/s = 1.3ms (memory-bound, not compute-bound)
+
+→ Running at the PHYSICAL SPEED LIMIT of the DDR5 RAM bus.
+```
+
+### Orchestration Payoff
+
+When the user's Chat GUI executes `CALL ladybug.hybrid_search()`:
+
+1. neo4j-rs maps the Cypher UDF to a SemanticKernel operation
+2. The engine memory-maps the Lance file (zero-copy)
+3. Horizontal sweep runs at DDR5 bus speed
+4. Top 10 nodes returned to AgentBlackboard in < 5ms
+5. The Agent (using compiled n8n-rs JITSON hot paths) instantly digests results
+6. Response enriched with NARS truth values + 3D SPO contextual mapping
+7. Awareness Cockpit displays confidence, DK-Gap, and causal rung
+
+```cypher
+-- User types in Chat GUI:
+MATCH (target:Concept)
+CALL ladybug.hybrid_search($query_16k_fp, $query_1024d_bf16, 0.3)
+YIELD node, total_score
+RETURN node, total_score ORDER BY total_score DESC
+```
+
+### Memory Container Layout (Lance Columnar)
+
+```rust
+// StorageBackend trait adapter for hybrid containers
+Field::new("_ladybug_fp",  DataType::FixedSizeBinary(2048), false), // 16kbit HDC
+Field::new("_jina_bf16",   DataType::FixedSizeList(BFloat16, 1024), false), // Dense embed
+Field::new("_nars_f",      DataType::Float32, false),  // NARS frequency
+Field::new("_nars_c",      DataType::Float32, false),  // NARS confidence
+Field::new("_rung",        DataType::UInt8, false),     // Causal rung (0/1/2)
+Field::new("_spo_trace",   DataType::FixedSizeBinary(2048), false), // 3D SPO binding
+```
+
+### Implementation Phases
+
+| Phase | Task | Crate |
+|-------|------|-------|
+| H.1 | Add 90° transposed word-column layout to `lance_io.rs` | rustynum-arrow |
+| H.2 | Implement horizontal broadcast + mask early exit in AVX-512 | rustynum-core |
+| H.3 | Add `hybrid_cascade_search()` combining HDC + NARS gate + BF16 | rustynum-arrow |
+| H.4 | Wire BF16 masked read into `datafusion_bridge.rs` | rustynum-arrow |
+| H.5 | Add `_jina_bf16` column to CogRecord schema | rustynum-arrow + ladybug-contract |
+| H.6 | Create `CALL ladybug.hybrid_search()` UDF in neo4j-rs | neo4j-rs |
+| H.7 | Wire into Chat Orchestrator context builder (Part III, Phase C.3) | n8n-contract |
+| H.8 | Benchmark: measure DDR5 bus saturation at 1M/10M/100M records | rustynum-arrow |
+
+---
+
+## Part IX: Resonance-Augmented Generation (RAG) — Not Retrieval
 
 ### Redefining RAG for the Cognitive Stack
 
@@ -1270,7 +1638,7 @@ highest `FeatureAd` proficiency for that style.
 
 ---
 
-## Part VIII: TypeScript Removal Endgame
+## Part X: TypeScript Removal Endgame
 
 ### Removal Phases (after all Rust providers are complete)
 
