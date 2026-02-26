@@ -71,6 +71,37 @@ One binary executes compiled kernels
 - Dynamic expression results (`{{ $json.field }}`)
 - Real-time A2A message payloads
 
+## Cross-Repo Integration (B-series — Bridge)
+
+| Step | Task | Status |
+|------|------|--------|
+| B.1 | crewai-rust `SubstrateView` trait for BindSpace abstraction | **Done** (crewai-rust) |
+| B.2 | `BindBridge` hydration + writeback (BindSpace ↔ Blackboard) | **Done** (crewai-rust) |
+| B.3 | `JitProfile` linking AgentCard → ThinkingStyle → τ addresses | **Done** (crewai-rust) |
+| B.4 | `MarkovBarrier` — blood-brain barrier with XOR budget | **Done** (crewai-rust) |
+| B.5 | ladybug-rs implements `SubstrateView` for actual BindSpace | Planned |
+| B.6 | n8n-rs workflow orchestration for outbound API sequencing | Planned |
+| B.7 | Wire `JitProfile` τ addresses into `CompiledStyleRegistry` | Planned |
+
+### Blood-Brain Barrier (B.4 detail)
+
+External LLM APIs are NOT source of truth. BindSpace is.
+
+```
+Outbound (Driver facet):
+  BindSpace awareness → RAG + thinking context → system prompt → xAI API
+
+Inbound (Guardian facet):
+  xAI response → BERT re-embedding → fingerprint delta
+    → MarkovBarrier XOR budget check
+    → NARS revision (truth gate)
+    → BindSpace XOR delta writeback
+
+Two modes:
+  NSM mode: semantic primitives → direct BindSpace addressing (no BERT)
+  NL mode: natural language → BERT → fingerprint (needs model)
+```
+
 ## Branch
 
 All work on: `claude/compare-rustynum-ndarray-5ePRn`
