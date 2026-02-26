@@ -31,6 +31,10 @@ tracing = { workspace = true }
 # Shared substrate types (LadybugDB contract) — optional for standalone mode
 ladybug-contract = { workspace = true, optional = true }
 
+# JITSON — Cranelift JIT for compiling workflow configs to native code.
+# Optional: only when building with JIT-compiled hot paths.
+jitson = { workspace = true, optional = true }
+
 # PostgreSQL (optional, for PgStore)
 [dependencies.sqlx]
 version = "0.7"
@@ -41,6 +45,7 @@ optional = true
 default = []
 postgres = ["dep:sqlx"]
 ladybug = ["dep:ladybug-contract"]
+jitson = ["dep:jitson"]
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util", "macros"] }

@@ -9,7 +9,10 @@ use axum::{
     response::IntoResponse,
     Json,
 };
-use n8n_core::{ExecutionStorage, WorkflowStorage, MemoryExecutionStorage, MemoryWorkflowStorage};
+use n8n_core::{
+    ExecutionStorage, WorkflowStorage, MemoryExecutionStorage, MemoryWorkflowStorage,
+    CompiledWorkflowCache, NodeExecutorRegistry,
+};
 use n8n_workflow::{Connection, ExecutionStatus, Node, Run, Workflow, WorkflowExecuteMode, WorkflowSettings};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -18,11 +21,16 @@ use chrono::{DateTime, Utc};
 use uuid::Uuid;
 use tokio::sync::RwLock;
 
-/// API state containing storage backends.
+/// API state containing storage backends and compiled workflow cache.
 #[derive(Clone)]
 pub struct ApiState {
     pub workflows: Arc<MemoryWorkflowStorage>,
     pub executions: Arc<ExecutionStore>,
+    /// Cache of JIT-compiled workflow dispatch tables.
+    /// Populated on workflow activation, invalidated on deactivation/update.
+    pub compiled_cache: Arc<CompiledWorkflowCache>,
+    /// Node executor registry for workflow compilation.
+    pub executor_registry: Arc<NodeExecutorRegistry>,
 }
 
 /// Extended execution store that tracks execution metadata.
@@ -94,7 +102,26 @@ impl ApiState {
         workflows: Arc<MemoryWorkflowStorage>,
         executions: Arc<ExecutionStore>,
     ) -> Self {
-        Self { workflows, executions }
+        Self {
+            workflows,
+            executions,
+            compiled_cache: Arc::new(CompiledWorkflowCache::new()),
+            executor_registry: Arc::new(NodeExecutorRegistry::new()),
+        }
+    }
+
+    /// Create with a custom executor registry (for registering crew.* / lb.* executors).
+    pub fn with_registry(
+        workflows: Arc<MemoryWorkflowStorage>,
+        executions: Arc<ExecutionStore>,
+        registry: NodeExecutorRegistry,
+    ) -> Self {
+        Self {
+            workflows,
+            executions,
+            compiled_cache: Arc::new(CompiledWorkflowCache::new()),
+            executor_registry: Arc::new(registry),
+        }
     }
 }
 
@@ -381,6 +408,8 @@ pub async fn get_workflow(
 }
 
 /// PUT /workflows/:id - Update a workflow.
+///
+/// Invalidates the compiled hot path cache (routing may have changed).
 pub async fn update_workflow(
     State(state): State<ApiState>,
     Path(id): Path<String>,
@@ -395,6 +424,9 @@ pub async fn update_workflow(
             code: 404,
             message: format!("Workflow {} not found", id),
         })?;
+
+    // Invalidate compiled cache — routing table may have changed.
+    state.compiled_cache.invalidate(&id);
 
     // Parse settings from JSON or keep existing
     let settings: WorkflowSettings = request.settings
@@ -416,6 +448,13 @@ pub async fn update_workflow(
         created_at: existing.created_at,
         updated_at: Some(Utc::now()),
     };
+
+    // If workflow was active, recompile with new routing.
+    if workflow.active {
+        if let Err(e) = state.compiled_cache.compile_and_cache(&workflow, &state.executor_registry) {
+            tracing::warn!(workflow = %workflow.name, error = %e, "Recompilation after update failed");
+        }
+    }
 
     state.workflows.save_workflow(&workflow).await
         .map_err(|e| ApiError {
@@ -441,6 +480,11 @@ pub async fn delete_workflow(
 }
 
 /// POST /workflows/:id/activate - Activate a workflow.
+///
+/// This is the JITSON compilation trigger. When activated:
+/// 1. Workflow is marked active
+/// 2. Static routing table is compiled to indexed dispatch
+/// 3. Compiled workflow is cached for zero-overhead execution
 pub async fn activate_workflow(
     State(state): State<ApiState>,
     Path(id): Path<String>,
@@ -458,6 +502,28 @@ pub async fn activate_workflow(
     workflow.active = true;
     workflow.updated_at = Some(Utc::now());
 
+    // Compile the workflow's static routing table into an indexed dispatch table.
+    // This replaces HashMap<String, _> lookups with direct array indexing at runtime.
+    match state.compiled_cache.compile_and_cache(&workflow, &state.executor_registry) {
+        Ok(compiled) => {
+            tracing::info!(
+                workflow = %workflow.name,
+                nodes = compiled.node_count(),
+                routes = compiled.route_count(),
+                "Workflow activated: compiled hot path cached"
+            );
+        }
+        Err(e) => {
+            // Compilation failure is non-fatal — workflow still activates,
+            // falls back to interpreted execution.
+            tracing::warn!(
+                workflow = %workflow.name,
+                error = %e,
+                "Workflow compilation failed, falling back to interpreted execution"
+            );
+        }
+    }
+
     state.workflows.save_workflow(&workflow).await
         .map_err(|e| ApiError {
             code: 500,
@@ -468,6 +534,8 @@ pub async fn activate_workflow(
 }
 
 /// POST /workflows/:id/deactivate - Deactivate a workflow.
+///
+/// Invalidates the compiled hot path cache for this workflow.
 pub async fn deactivate_workflow(
     State(state): State<ApiState>,
     Path(id): Path<String>,
@@ -484,6 +552,11 @@ pub async fn deactivate_workflow(
 
     workflow.active = false;
     workflow.updated_at = Some(Utc::now());
+
+    // Invalidate the compiled workflow cache.
+    if state.compiled_cache.invalidate(&id) {
+        tracing::info!(workflow = %workflow.name, "Invalidated compiled hot path cache");
+    }
 
     state.workflows.save_workflow(&workflow).await
         .map_err(|e| ApiError {
