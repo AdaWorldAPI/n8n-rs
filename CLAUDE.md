@@ -76,11 +76,53 @@ ladybug = { path = "../../ladybug-rs", features = ["lancedb"] }
 ladybug-contract = { path = "../../ladybug-rs/crates/ladybug-contract" }
 ```
 
+---
+
+## JIT / JITSON Compilation Pipeline
+
+n8n-rs is where thinking styles get **compiled to native code**. This is the
+tier 4/10 orchestration: crewai-rust defines styles as YAML/JSON, n8n-rs
+routes them, jitson (Cranelift AVX-512) compiles them into scan kernels
+that run directly on Arrow buffers.
+
+```
+crewai-rust: AgentCard (YAML) -> JitProfile -> tau address
+    |
+n8n-rs: CompiledStyleRegistry -> jitson compile
+    |
+jitson: YAML/JSON config -> Cranelift -> native AVX-512 function pointer
+    |  threshold: 500        -> CMP reg, 500
+    |  focus_mask: [47,193]  -> 8KB AND mask as immediate data
+    |  prefetch_ahead: 4     -> PREFETCHT0 [ptr + 4*RECORD_SIZE]
+    |  confidence: 0.7       -> branch probability hint
+    |
+Arrow buffer (mmap'd from Lance, zero-copy)
+    |  compiled kernel runs directly on buffer -- no copy, no interpretation
+    |
+BindSpace result
+```
+
+**Config IS the code.** Thresholds become CMP immediates. Masks become VPANDQ.
+Weights become hints. The JSON/YAML is not interpreted at runtime -- it is
+compiled once into a native function pointer, cached, and reused.
+
+### JITSON Integration Status (all done)
+
+| Step | Task | Status |
+|------|------|--------|
+| J.1 | jitson as dep in n8n-contract | **Done** |
+| J.3 | CompiledStyle: ThinkingStyle -> ScanKernel | **Done** |
+| J.4 | WorkflowHotPath: compile routing tables | **Done** |
+| J.5 | Kernel cache in n8n-core | **Done** |
+| J.6 | activate -> compile -> cache -> execute | **Done** |
+
 ### Cross-Repo References
 
 - `ladybug-rs/CLAUDE.md` -- "The Rustynum Acceleration Contract"
 - `rustynum/CLAUDE.md` -- Section 12 "The Lance Zero-Copy Contract"
-- `crewai-rust/CLAUDE.md` -- "Storage Strategy"
+- `rustynum/jitson/` -- Cranelift JIT engine (own workspace, NOT a member)
+- `crewai-rust/CLAUDE.md` -- "Storage Strategy" + JitProfile/JitTemplate types
+- `crewai-rust/src/persona/jit_link.rs` -- AgentCard -> ThinkingStyle -> JIT template
 
 ---
 
