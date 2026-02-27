@@ -135,6 +135,45 @@ cd n8n-rust && cargo build
 # Test Rust crates
 cd n8n-rust && cargo test
 
+# Lint
+cd n8n-rust && cargo clippy --workspace --all-targets -- -D warnings
+
 # Run server
 cd n8n-rust && cargo run --bin n8n-server
 ```
+
+---
+
+## OPEN TODOs — Wiring Checklist (SESSION-DURABLE)
+
+> **READ THIS EVERY SESSION.** Do NOT invent new code. Wire EXISTING.
+> Mark items DONE with date. If you skip an item, explain why.
+
+### P0 — Wire JIT Pipeline End-to-End
+
+- [ ] **CompiledStyleRegistry → jitson compile** — Connect the dots
+  - n8n-contract has CompiledStyleRegistry (J.3, Done)
+  - crewai-rust produces JitScanParams via `jit_link.rs:298-335`
+  - jitson's `JitEngine::compile_scan(params) -> ScanKernel` is the compile step
+  - Need: Registry calls jitson at startup, caches function pointers
+  - Note: jitson depends on wasmtime Cranelift fork — separate build
+
+- [ ] **In-process delegation** — Replace HTTP proxy with vendor-linked calls
+  - `crew_router.rs` currently does HTTP POST to `{CREWAI_ENDPOINT}/execute`
+  - `ladybug_router.rs` currently does HTTP POST to `{LADYBUG_ENDPOINT}/api/v1/...`
+  - When vendor-linked (single binary), these should be in-process function calls
+  - Vendor features: `vendor-n8n`, `vendor-crewai` in ladybug-rs Cargo.toml
+
+### P1 — Arrow Flight Zero-Copy
+
+- [ ] **Arrow Flight endpoint for rustynum kernels**
+  - n8n-arrow provides Arrow Flight integration (port 50052)
+  - Should serve RecordBatches that ladybug-rs can consume via zero-copy IPC
+  - Never copy Arrow buffers — use `Buffer::clone()` (Arc, not memcpy)
+
+### DONE
+
+- [x] wire_bridge.rs: ingest/emit CogPacket routing (crew→0x0C, lb→0x05, n8n→0x0F)
+- [x] JITSON integration steps J.1–J.6
+- [x] CI workflow with lint + miri (5 min timeout per crate)
+- [x] Arrow Zero-Copy Chain documented
