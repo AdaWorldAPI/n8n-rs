@@ -33,6 +33,8 @@ pub mod interface_gateway;
 pub mod impact_gate;
 pub mod semantic_model;
 pub mod chat_session;
+pub mod thinking_mode;
+pub mod mcp_inbound;
 
 /// Legacy DTO types for standalone mode (TruthValue, wire opcode constants).
 /// Used by impact_gate and interface_gateway when ladybug feature is off.
@@ -65,6 +67,8 @@ pub use chat_session::{
     ChatSession, ChatMessage, ChatIntent, ParsedIntent, AwarenessCockpit,
     parse_intent,
 };
+pub use thinking_mode::{ThinkingMode, InferenceType, QueryPlan, route_by_thinking_mode, detect_from_cypher};
+pub use mcp_inbound::{McpToolRegistry, McpToolDefinition, McpToolCall, McpToolResult, ToolRouting, LadybugOp};
 
 #[cfg(feature = "ladybug")]
 pub use free_will::{FreeWillPipeline, ModificationProposal, ModificationType, ModificationLimits};

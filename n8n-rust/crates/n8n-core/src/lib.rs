@@ -18,6 +18,7 @@ pub mod expression;
 pub mod node_types;
 pub mod runtime;
 pub mod storage;
+pub mod jitson_hooks;
 
 pub use credentials::{CredentialError, CredentialService, DecryptedCredentialData};
 pub use engine::*;
@@ -30,4 +31,8 @@ pub use expression::{
 pub use runtime::*;
 pub use storage::{
     ExecutionStorage, WorkflowStorage, MemoryExecutionStorage, MemoryWorkflowStorage,
+};
+pub use jitson_hooks::{
+    CompiledParams, WorkflowLifecycle, ExecutionStats as JitsonExecutionStats,
+    NodeErrorHandler, ErrorAction, MarkovChain, Signal,
 };
