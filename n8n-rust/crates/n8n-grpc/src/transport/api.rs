@@ -715,3 +715,134 @@ pub fn create_api_router(state: ApiState) -> Router {
         .route("/api/v1/executions/:id/retry", axum_post(retry_execution))
         .with_state(state)
 }
+
+// ============================================================================
+// In-process dispatch for ladybug-rs single-binary mode
+// ============================================================================
+
+/// In-process POST dispatch — routes directly to handler logic, no HTTP overhead.
+pub async fn handle_api_post(
+    path: &str,
+    body: &str,
+) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
+    let state = ApiState::new(
+        Arc::new(MemoryWorkflowStorage::new()),
+        Arc::new(ExecutionStore::new()),
+    );
+    let path = path.trim_start_matches('/');
+    match path {
+        "api/v1/workflows" => {
+            let request: WorkflowRequest = serde_json::from_str(body)?;
+            let settings: WorkflowSettings = request
+                .settings
+                .as_ref()
+                .and_then(|v| serde_json::from_value(v.clone()).ok())
+                .unwrap_or_default();
+            let workflow = Workflow {
+                id: Uuid::new_v4().to_string(),
+                name: request.name,
+                active: false,
+                nodes: request.nodes,
+                connections: request.connections,
+                settings,
+                static_data: None,
+                pin_data: None,
+                description: None,
+                version_id: None,
+                created_at: Some(Utc::now()),
+                updated_at: Some(Utc::now()),
+            };
+            state
+                .workflows
+                .save_workflow(&workflow)
+                .await
+                .map_err(|e| -> Box<dyn std::error::Error + Send + Sync> {
+                    format!("{e}").into()
+                })?;
+            Ok(serde_json::to_string(&WorkflowResponse::from(&workflow))?)
+        }
+        "api/v1/executions" => {
+            let request: ExecutionRequest = serde_json::from_str(body)?;
+            let workflow = state
+                .workflows
+                .get_workflow(&request.workflow_id)
+                .await
+                .map_err(|e| -> Box<dyn std::error::Error + Send + Sync> {
+                    format!("{e}").into()
+                })?
+                .ok_or_else(|| -> Box<dyn std::error::Error + Send + Sync> {
+                    format!("Workflow {} not found", request.workflow_id).into()
+                })?;
+            let mode = request.mode.as_deref().unwrap_or("manual");
+            let execute_mode = WorkflowExecuteMode::from_str(mode).unwrap_or_default();
+            let execution_id = Uuid::new_v4().to_string();
+            let run = Run::new(execute_mode);
+            state
+                .executions
+                .save_execution(
+                    &execution_id,
+                    &request.workflow_id,
+                    &workflow.name,
+                    &run,
+                )
+                .await
+                .map_err(|e| -> Box<dyn std::error::Error + Send + Sync> {
+                    format!("{e}").into()
+                })?;
+            Ok(serde_json::to_string(&ExecutionResponse::from_run(
+                execution_id,
+                &run,
+                Some(request.workflow_id),
+            ))?)
+        }
+        _ => Err(format!("n8n: unknown POST path: /{path}").into()),
+    }
+}
+
+/// In-process GET dispatch — routes directly to handler logic, no HTTP overhead.
+pub async fn handle_api_get(
+    path: &str,
+) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
+    let state = ApiState::new(
+        Arc::new(MemoryWorkflowStorage::new()),
+        Arc::new(ExecutionStore::new()),
+    );
+    let path = path.trim_start_matches('/');
+    match path {
+        "api/v1/workflows" => {
+            let workflows = state
+                .workflows
+                .list_workflows()
+                .await
+                .map_err(|e| -> Box<dyn std::error::Error + Send + Sync> {
+                    format!("{e}").into()
+                })?;
+            let data: Vec<WorkflowResponse> =
+                workflows.iter().map(WorkflowResponse::from).collect();
+            Ok(serde_json::to_string(&ListResponse {
+                data,
+                next_cursor: None,
+            })?)
+        }
+        "api/v1/executions" => {
+            let executions = state
+                .executions
+                .list_all_executions()
+                .await
+                .map_err(|e| -> Box<dyn std::error::Error + Send + Sync> {
+                    format!("{e}").into()
+                })?;
+            let data: Vec<ExecutionResponse> = executions
+                .into_iter()
+                .map(|(id, run, metadata)| {
+                    ExecutionResponse::from_run(id, &run, metadata.map(|m| m.workflow_id))
+                })
+                .collect();
+            Ok(serde_json::to_string(&ListResponse {
+                data,
+                next_cursor: None,
+            })?)
+        }
+        _ => Err(format!("n8n: unknown GET path: /{path}").into()),
+    }
+}
