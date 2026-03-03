@@ -31,7 +31,7 @@
 //! ```
 
 use crate::executor::{NodeExecutor, NodeExecutorRegistry};
-use n8n_workflow::{Node, Workflow};
+use n8n_workflow::{Node, NodeParameterValue, Workflow};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tracing::{debug, info, warn};
@@ -339,15 +339,38 @@ pub enum CompileError {
 // Internal helpers
 // ============================================================================
 
+/// Convert a [`NodeParameterValue`] to a [`serde_json::Value`].
+fn param_to_json(npv: &NodeParameterValue) -> serde_json::Value {
+    match npv {
+        NodeParameterValue::String(s) | NodeParameterValue::Expression(s) => {
+            serde_json::Value::String(s.clone())
+        }
+        NodeParameterValue::Number(n) => {
+            serde_json::json!(n)
+        }
+        NodeParameterValue::Boolean(b) => {
+            serde_json::Value::Bool(*b)
+        }
+        NodeParameterValue::Array(arr) => {
+            serde_json::Value::Array(arr.iter().map(param_to_json).collect())
+        }
+        NodeParameterValue::Object(map) => {
+            serde_json::Value::Object(
+                map.iter().map(|(k, v)| (k.clone(), param_to_json(v))).collect(),
+            )
+        }
+    }
+}
+
 /// Extract parameters that are static (no `{{ }}` expressions).
 /// These can be used directly at runtime without re-parsing.
 fn extract_static_params(
-    params: &HashMap<String, serde_json::Value>,
+    params: &HashMap<String, NodeParameterValue>,
 ) -> HashMap<String, serde_json::Value> {
     params
         .iter()
+        .map(|(k, v)| (k.clone(), param_to_json(v)))
         .filter(|(_, v)| !value_contains_expression(v))
-        .map(|(k, v)| (k.clone(), v.clone()))
         .collect()
 }
 
