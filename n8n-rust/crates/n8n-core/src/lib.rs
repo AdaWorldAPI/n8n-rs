@@ -15,6 +15,7 @@ pub mod engine;
 pub mod error;
 pub mod executor;
 pub mod expression;
+pub mod hot_path;
 pub mod node_types;
 pub mod runtime;
 pub mod storage;
@@ -24,6 +25,7 @@ pub use credentials::{CredentialError, CredentialService, DecryptedCredentialDat
 pub use engine::*;
 pub use error::*;
 pub use executor::*;
+pub use hot_path::{CompiledWorkflow, CompiledWorkflowCache, CompiledNode, RouteEntry, CompileError};
 pub use expression::{
     ExpressionContext, ExpressionError, ExpressionEvaluator, ExpressionResult,
     parse, parse_template, resolve_parameter,

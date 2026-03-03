@@ -49,6 +49,10 @@ pub mod wire_bridge;
 #[cfg(feature = "ladybug")]
 pub mod free_will;
 
+// JITSON — Cranelift JIT compilation of thinking styles and workflow hot paths.
+#[cfg(feature = "jitson")]
+pub mod compiled_style;
+
 #[cfg(feature = "postgres")]
 pub mod pg_store;
 
@@ -72,6 +76,9 @@ pub use mcp_inbound::{McpToolRegistry, McpToolDefinition, McpToolCall, McpToolRe
 
 #[cfg(feature = "ladybug")]
 pub use free_will::{FreeWillPipeline, ModificationProposal, ModificationType, ModificationLimits};
+
+#[cfg(feature = "jitson")]
+pub use compiled_style::{CompiledStyle, CompiledStyleRegistry};
 
 // Re-export the shared substrate types from ladybug-contract (only with feature)
 #[cfg(feature = "ladybug")]

@@ -39,3 +39,10 @@ reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-feature
 aes-gcm = "0.10"
 pbkdf2 = "0.12"
 hmac = "0.12"
+
+# JITSON — Cranelift JIT for compiled workflow hot paths (optional)
+jitson = { workspace = true, optional = true }
+
+[features]
+default = []
+jitson = ["dep:jitson"]

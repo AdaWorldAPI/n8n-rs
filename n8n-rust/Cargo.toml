@@ -71,6 +71,10 @@ rand = "0.8"
 ladybug = { path = "../../ladybug-rs", features = ["lancedb"] }
 ladybug-contract = { path = "../../ladybug-rs/crates/ladybug-contract" }
 
+# Vendor: JITSON — JSON/YAML config → native code via Cranelift JIT
+# Requires: wasmtime fork at ../../wasmtime/ (AVX-512 VPOPCNTDQ/VNNI)
+jitson = { path = "../../rustynum/jitson" }
+
 # Build
 tonic-build = "0.14"
 tonic-prost-build = "0.14"
