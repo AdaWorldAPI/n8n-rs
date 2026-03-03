@@ -341,22 +341,30 @@ pub enum CompileError {
 
 /// Extract parameters that are static (no `{{ }}` expressions).
 /// These can be used directly at runtime without re-parsing.
+///
+/// Accepts `NodeParameters` (`HashMap<String, NodeParameterValue>`) and converts
+/// static entries to `serde_json::Value` for uniform downstream handling.
 fn extract_static_params(
-    params: &HashMap<String, serde_json::Value>,
+    params: &n8n_workflow::data::NodeParameters,
 ) -> HashMap<String, serde_json::Value> {
     params
         .iter()
-        .filter(|(_, v)| !value_contains_expression(v))
-        .map(|(k, v)| (k.clone(), v.clone()))
+        .filter(|(_, v)| !npv_contains_expression(v))
+        .filter_map(|(k, v)| {
+            serde_json::to_value(v).ok().map(|jv| (k.clone(), jv))
+        })
         .collect()
 }
 
-/// Check if a JSON value contains an n8n `{{ }}` expression.
-fn value_contains_expression(value: &serde_json::Value) -> bool {
+/// Check if a `NodeParameterValue` contains an n8n `{{ }}` expression.
+fn npv_contains_expression(value: &n8n_workflow::data::NodeParameterValue) -> bool {
+    use n8n_workflow::data::NodeParameterValue;
     match value {
-        serde_json::Value::String(s) => s.contains("{{") && s.contains("}}"),
-        serde_json::Value::Array(arr) => arr.iter().any(value_contains_expression),
-        serde_json::Value::Object(map) => map.values().any(value_contains_expression),
+        NodeParameterValue::String(s) | NodeParameterValue::Expression(s) => {
+            s.contains("{{") && s.contains("}}")
+        }
+        NodeParameterValue::Array(arr) => arr.iter().any(npv_contains_expression),
+        NodeParameterValue::Object(map) => map.values().any(npv_contains_expression),
         _ => false,
     }
 }
