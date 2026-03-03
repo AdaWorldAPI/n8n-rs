@@ -62,7 +62,7 @@ pub struct CompiledNode {
     pub is_trigger: bool,
     /// Static parameter values that don't contain expressions.
     /// These are extracted once at compile time, not re-parsed per execution.
-    pub static_params: HashMap<String, serde_json::Value>,
+    pub static_params: n8n_workflow::data::NodeParameters,
 }
 
 /// A fully compiled workflow — all routing resolved to indices.
@@ -342,21 +342,20 @@ pub enum CompileError {
 /// Extract parameters that are static (no `{{ }}` expressions).
 /// These can be used directly at runtime without re-parsing.
 ///
-/// Accepts `NodeParameters` (`HashMap<String, NodeParameterValue>`) and converts
-/// static entries to `serde_json::Value` for uniform downstream handling.
+/// NodeParameterValue in, NodeParameterValue out. No serialization.
+/// NaN, infinity, and any future NPV variant flow through unchanged.
 fn extract_static_params(
     params: &n8n_workflow::data::NodeParameters,
-) -> HashMap<String, serde_json::Value> {
+) -> n8n_workflow::data::NodeParameters {
     params
         .iter()
         .filter(|(_, v)| !npv_contains_expression(v))
-        .filter_map(|(k, v)| {
-            serde_json::to_value(v).ok().map(|jv| (k.clone(), jv))
-        })
+        .map(|(k, v)| (k.clone(), v.clone()))
         .collect()
 }
 
-/// Check if a `NodeParameterValue` contains an n8n `{{ }}` expression.
+/// Check if a NodeParameterValue contains an n8n `{{ }}` expression.
+/// Pattern-matches on domain types directly — no serialization to JSON.
 fn npv_contains_expression(value: &n8n_workflow::data::NodeParameterValue) -> bool {
     use n8n_workflow::data::NodeParameterValue;
     match value {
@@ -372,15 +371,16 @@ fn npv_contains_expression(value: &n8n_workflow::data::NodeParameterValue) -> bo
 #[cfg(test)]
 mod tests {
     use super::*;
-    use n8n_workflow::{WorkflowBuilder, Node, Connection};
+    use n8n_workflow::{WorkflowBuilder, Node};
 
     #[test]
     fn test_compile_simple_workflow() {
         let workflow = WorkflowBuilder::new("test")
-            .add_node(Node::new("Start", "n8n-nodes-base.manualTrigger"))
-            .add_node(Node::new("Process", "n8n-nodes-base.set"))
-            .connect("Start", "Process", "main", 0)
-            .build();
+            .node(Node::new("Start", "n8n-nodes-base.manualTrigger"))
+            .node(Node::new("Process", "n8n-nodes-base.set"))
+            .connect("Start", "Process", 0, 0)
+            .unwrap()
+            .build_unchecked();
 
         let registry = NodeExecutorRegistry::new();
         let compiled = CompiledWorkflow::compile(&workflow, &registry).unwrap();
@@ -392,19 +392,32 @@ mod tests {
 
     #[test]
     fn test_static_param_extraction() {
-        let mut params = HashMap::new();
+        use n8n_workflow::data::NodeParameterValue;
+
+        let mut params = n8n_workflow::data::NodeParameters::new();
         params.insert(
             "url".to_string(),
-            serde_json::Value::String("https://example.com".to_string()),
+            NodeParameterValue::String("https://example.com".to_string()),
         );
         params.insert(
             "dynamic".to_string(),
-            serde_json::Value::String("{{ $json.url }}".to_string()),
+            NodeParameterValue::String("{{ $json.url }}".to_string()),
+        );
+        params.insert(
+            "threshold".to_string(),
+            NodeParameterValue::Number(f64::NAN),
         );
 
         let static_params = extract_static_params(&params);
-        assert_eq!(static_params.len(), 1);
+        assert_eq!(static_params.len(), 2);
         assert!(static_params.contains_key("url"));
+        assert!(static_params.contains_key("threshold"));
         assert!(!static_params.contains_key("dynamic"));
+
+        // NaN survives — no serialization to silently eat it
+        match static_params.get("threshold") {
+            Some(NodeParameterValue::Number(n)) => assert!(n.is_nan()),
+            other => panic!("expected Number(NaN), got {:?}", other),
+        }
     }
 }
