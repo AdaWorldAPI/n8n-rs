@@ -592,7 +592,7 @@ impl WorkflowEngine {
 
     /// Check whether any parameter value contains an expression (`{{ }}`).
     fn params_contain_expression(params: &HashMap<String, NodeParameterValue>) -> bool {
-        params.values().any(|v| Self::value_contains_expression(v))
+        params.values().any(Self::value_contains_expression)
     }
 
     fn value_contains_expression(value: &NodeParameterValue) -> bool {

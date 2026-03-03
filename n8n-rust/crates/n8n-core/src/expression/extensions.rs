@@ -97,7 +97,7 @@ fn call_string_method(s: &str, method: &str, args: &[Value]) -> ExpressionResult
             if s.len() >= length {
                 Ok(Value::String(s.to_string()))
             } else {
-                let padding: String = std::iter::repeat(pad_char).take(length - s.len()).collect();
+                let padding: String = std::iter::repeat_n(pad_char, length - s.len()).collect();
                 Ok(Value::String(format!("{}{}", padding, s)))
             }
         }
@@ -111,7 +111,7 @@ fn call_string_method(s: &str, method: &str, args: &[Value]) -> ExpressionResult
             if s.len() >= length {
                 Ok(Value::String(s.to_string()))
             } else {
-                let padding: String = std::iter::repeat(pad_char).take(length - s.len()).collect();
+                let padding: String = std::iter::repeat_n(pad_char, length - s.len()).collect();
                 Ok(Value::String(format!("{}{}", s, padding)))
             }
         }
@@ -244,7 +244,7 @@ fn call_string_method(s: &str, method: &str, args: &[Value]) -> ExpressionResult
         "concat" => {
             let mut result = s.to_string();
             for arg in args {
-                result.push_str(&arg.as_str().unwrap_or_default().to_string());
+                result.push_str(arg.as_str().unwrap_or_default());
             }
             Ok(Value::String(result))
         }
@@ -313,7 +313,7 @@ fn call_string_method(s: &str, method: &str, args: &[Value]) -> ExpressionResult
         }
         "urlDecode" => {
             Ok(Value::String(
-                urlencoding::decode(s).unwrap_or_else(|_| std::borrow::Cow::Borrowed(s)).to_string(),
+                urlencoding::decode(s).unwrap_or(std::borrow::Cow::Borrowed(s)).to_string(),
             ))
         }
 
@@ -457,7 +457,7 @@ fn call_array_method(arr: &[Value], method: &str, args: &[Value]) -> ExpressionR
             let separator = args.first().and_then(|v| v.as_str()).unwrap_or(",");
             let joined: String = arr
                 .iter()
-                .map(|v| value_to_string(v))
+                .map(value_to_string)
                 .collect::<Vec<_>>()
                 .join(separator);
             Ok(Value::String(joined))
