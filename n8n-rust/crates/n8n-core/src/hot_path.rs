@@ -31,7 +31,7 @@
 //! ```
 
 use crate::executor::{NodeExecutor, NodeExecutorRegistry};
-use n8n_workflow::{Node, NodeParameterValue, Workflow};
+use n8n_workflow::{Node, NodeParameterValue, NodeParameters, Workflow};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tracing::{debug, info, warn};
@@ -62,7 +62,8 @@ pub struct CompiledNode {
     pub is_trigger: bool,
     /// Static parameter values that don't contain expressions.
     /// These are extracted once at compile time, not re-parsed per execution.
-    pub static_params: HashMap<String, serde_json::Value>,
+    /// Type-preserving: NodeParameterValue, not serde_json::Value.
+    pub static_params: NodeParameters,
 }
 
 /// A fully compiled workflow — all routing resolved to indices.
@@ -339,49 +340,28 @@ pub enum CompileError {
 // Internal helpers
 // ============================================================================
 
-/// Convert a [`NodeParameterValue`] to a [`serde_json::Value`].
-fn param_to_json(npv: &NodeParameterValue) -> serde_json::Value {
-    match npv {
+/// Check if a [`NodeParameterValue`] contains an n8n `{{ }}` expression.
+/// Operates directly on the native type — no serialization boundary.
+fn npv_contains_expression(value: &NodeParameterValue) -> bool {
+    match value {
         NodeParameterValue::String(s) | NodeParameterValue::Expression(s) => {
-            serde_json::Value::String(s.clone())
+            s.contains("{{") && s.contains("}}")
         }
-        NodeParameterValue::Number(n) => {
-            serde_json::json!(n)
-        }
-        NodeParameterValue::Boolean(b) => {
-            serde_json::Value::Bool(*b)
-        }
-        NodeParameterValue::Array(arr) => {
-            serde_json::Value::Array(arr.iter().map(param_to_json).collect())
-        }
-        NodeParameterValue::Object(map) => {
-            serde_json::Value::Object(
-                map.iter().map(|(k, v)| (k.clone(), param_to_json(v))).collect(),
-            )
-        }
+        NodeParameterValue::Array(arr) => arr.iter().any(npv_contains_expression),
+        NodeParameterValue::Object(map) => map.values().any(npv_contains_expression),
+        _ => false,
     }
 }
 
 /// Extract parameters that are static (no `{{ }}` expressions).
-/// These can be used directly at runtime without re-parsing.
-fn extract_static_params(
-    params: &HashMap<String, NodeParameterValue>,
-) -> HashMap<String, serde_json::Value> {
+/// Type-preserving: returns NodeParameters (HashMap<String, NodeParameterValue>),
+/// not serde_json::Value. NaN, Infinity, and all f64 values survive intact.
+fn extract_static_params(params: &NodeParameters) -> NodeParameters {
     params
         .iter()
-        .map(|(k, v)| (k.clone(), param_to_json(v)))
-        .filter(|(_, v)| !value_contains_expression(v))
+        .filter(|(_, v)| !npv_contains_expression(v))
+        .map(|(k, v)| (k.clone(), v.clone()))
         .collect()
-}
-
-/// Check if a JSON value contains an n8n `{{ }}` expression.
-fn value_contains_expression(value: &serde_json::Value) -> bool {
-    match value {
-        serde_json::Value::String(s) => s.contains("{{") && s.contains("}}"),
-        serde_json::Value::Array(arr) => arr.iter().any(value_contains_expression),
-        serde_json::Value::Object(map) => map.values().any(value_contains_expression),
-        _ => false,
-    }
 }
 
 #[cfg(test)]
@@ -392,10 +372,12 @@ mod tests {
     #[test]
     fn test_compile_simple_workflow() {
         let workflow = WorkflowBuilder::new("test")
-            .add_node(Node::new("Start", "n8n-nodes-base.manualTrigger"))
-            .add_node(Node::new("Process", "n8n-nodes-base.set"))
-            .connect("Start", "Process", "main", 0)
-            .build();
+            .node(Node::new("Start", "n8n-nodes-base.manualTrigger"))
+            .node(Node::new("Process", "n8n-nodes-base.set"))
+            .connect("Start", "Process", 0, 0)
+            .unwrap()
+            .build()
+            .unwrap();
 
         let registry = NodeExecutorRegistry::new();
         let compiled = CompiledWorkflow::compile(&workflow, &registry).unwrap();
@@ -407,19 +389,51 @@ mod tests {
 
     #[test]
     fn test_static_param_extraction() {
-        let mut params = HashMap::new();
+        let mut params: NodeParameters = HashMap::new();
         params.insert(
             "url".to_string(),
-            serde_json::Value::String("https://example.com".to_string()),
+            NodeParameterValue::String("https://example.com".to_string()),
         );
         params.insert(
             "dynamic".to_string(),
-            serde_json::Value::String("{{ $json.url }}".to_string()),
+            NodeParameterValue::String("{{ $json.url }}".to_string()),
         );
 
         let static_params = extract_static_params(&params);
         assert_eq!(static_params.len(), 1);
         assert!(static_params.contains_key("url"));
         assert!(!static_params.contains_key("dynamic"));
+    }
+
+    #[test]
+    fn test_static_param_nan_survives() {
+        let mut params: NodeParameters = HashMap::new();
+        params.insert(
+            "threshold".to_string(),
+            NodeParameterValue::Number(f64::NAN),
+        );
+        params.insert(
+            "infinity".to_string(),
+            NodeParameterValue::Number(f64::INFINITY),
+        );
+        params.insert(
+            "normal".to_string(),
+            NodeParameterValue::Number(42.0),
+        );
+
+        let static_params = extract_static_params(&params);
+        assert_eq!(static_params.len(), 3);
+
+        // NaN survives — no lossy serde_json conversion
+        match &static_params["threshold"] {
+            NodeParameterValue::Number(n) => assert!(n.is_nan()),
+            other => panic!("Expected Number, got {:?}", other),
+        }
+
+        // Infinity survives
+        match &static_params["infinity"] {
+            NodeParameterValue::Number(n) => assert!(n.is_infinite()),
+            other => panic!("Expected Number, got {:?}", other),
+        }
     }
 }
