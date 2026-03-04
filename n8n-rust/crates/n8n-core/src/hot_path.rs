@@ -344,12 +344,11 @@ pub enum CompileError {
 /// Operates directly on the native type — no serialization boundary.
 fn npv_contains_expression(value: &NodeParameterValue) -> bool {
     match value {
-        NodeParameterValue::String(s) | NodeParameterValue::Expression(s) => {
-            s.contains("{{") && s.contains("}}")
-        }
+        NodeParameterValue::Expression(_) => true, // Expression variant is always dynamic
+        NodeParameterValue::String(s) => s.contains("{{") && s.contains("}}"),
         NodeParameterValue::Array(arr) => arr.iter().any(npv_contains_expression),
         NodeParameterValue::Object(map) => map.values().any(npv_contains_expression),
-        _ => false,
+        NodeParameterValue::Number(_) | NodeParameterValue::Boolean(_) => false,
     }
 }
 
