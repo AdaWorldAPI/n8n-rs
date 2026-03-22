@@ -105,3 +105,14 @@ Two modes:
 ## Branch
 
 All work on: `claude/compare-rustynum-ndarray-5ePRn`
+
+## Status (2026-03-22 Audit)
+
+- 8 Rust crates present: n8n-arrow, n8n-contract, n8n-core, n8n-db, n8n-grpc, n8n-hamming, n8n-server, n8n-workflow — DONE
+- JITSON J-series (J.1-J.6): PARTIAL — code exists but defaults to interpreted mode (`is_jit_compiled: false`); wasmtime/cranelift dependency missing from disk
+- S-series Single Binary (S.1-S.5): OPEN — all 5 still planned
+- Arrow Flight code (flight.rs, ipc.rs, convert.rs, schema.rs): DONE
+- wire_bridge CogPacket routing (crew_router.rs, ladybug_router.rs): DONE
+- Arrow zero-copy chain end-to-end: OPEN — not wired to BindSpace
+- B-series Bridge (B.5-B.7): OPEN
+- Build: FAILS — missing wasmtime/cranelift directory at /home/user/wasmtime
