@@ -14,7 +14,7 @@ members = [
 [workspace.package]
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.93"
+rust-version = "1.94"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/AdaWorldAPI/n8n-rs"
 authors = ["AdaWorld API Team"]
