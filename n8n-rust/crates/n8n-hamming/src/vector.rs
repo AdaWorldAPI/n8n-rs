@@ -79,9 +79,9 @@ impl HammingVector {
         let mut hasher = Sha256::new();
 
         // Generate enough hash data to fill the vector
-        for chunk_idx in 0..((VECTOR_WORDS * 8 + 31) / 32) {
+        for chunk_idx in 0..(VECTOR_WORDS * 8).div_ceil(32) {
             hasher.update(seed.as_bytes());
-            hasher.update(&(chunk_idx as u64).to_le_bytes());
+            hasher.update((chunk_idx as u64).to_le_bytes());
             let hash = hasher.finalize_reset();
 
             // Copy hash bytes into words
@@ -400,7 +400,7 @@ impl HammingIndex {
             .vectors
             .iter()
             .map(|(id, v)| (id.as_str(), query.distance(v)))
-            .filter(|(_, d)| max_distance.map_or(true, |max| *d <= max))
+            .filter(|(_, d)| max_distance.is_none_or(|max| *d <= max))
             .collect();
 
         results.sort_by_key(|(_, d)| *d);

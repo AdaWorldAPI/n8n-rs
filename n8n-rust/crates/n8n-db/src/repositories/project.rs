@@ -53,7 +53,7 @@ impl ProjectRepository {
     /// Create a new project.
     pub async fn create(&self, project: &Project) -> Result<Project, DbError> {
         let icon_json = project.icon.as_ref()
-            .map(|i| serde_json::to_value(i))
+            .map(serde_json::to_value)
             .transpose()?;
 
         let created = sqlx::query_as::<_, Project>(

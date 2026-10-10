@@ -14,7 +14,9 @@ use serde_json::Value;
 /// Status of a single step within a unified execution.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[derive(Default)]
 pub enum StepStatus {
+    #[default]
     Pending,
     Running,
     Completed,
@@ -22,11 +24,6 @@ pub enum StepStatus {
     Skipped,
 }
 
-impl Default for StepStatus {
-    fn default() -> Self {
-        Self::Pending
-    }
-}
 
 // ============================================================================
 // UnifiedStep

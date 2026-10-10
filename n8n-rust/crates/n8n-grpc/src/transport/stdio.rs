@@ -437,8 +437,7 @@ pub mod sync {
                         });
                     }
                     StdioMessage::Error(err) if err.id.as_deref() == Some(&id) => {
-                        return Err(io::Error::new(
-                            io::ErrorKind::Other,
+                        return Err(io::Error::other(
                             format!("Error {}: {}", err.code, err.message),
                         ));
                     }

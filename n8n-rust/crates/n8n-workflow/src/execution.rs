@@ -52,6 +52,8 @@ impl ExecutionStatus {
         }
     }
 
+    // Returns Option, not Result<Self, Err>: deliberately not FromStr.
+    #[allow(clippy::should_implement_trait)]
     pub fn from_str(s: &str) -> Option<Self> {
         match s {
             "new" => Some(ExecutionStatus::New),

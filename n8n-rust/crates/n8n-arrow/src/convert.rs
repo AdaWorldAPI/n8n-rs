@@ -457,7 +457,7 @@ pub fn workflow_connections_to_batch(workflow: &Workflow) -> Result<RecordBatch,
 mod tests {
     use super::*;
     use n8n_workflow::{GenericValue, NodeExecutionData};
-    use std::collections::HashMap;
+    
 
     fn make_item(pairs: Vec<(&str, GenericValue)>) -> NodeExecutionData {
         let mut obj = DataObject::new();
@@ -580,7 +580,7 @@ mod tests {
         assert_eq!(recovered.len(), 2);
 
         // Bob should not have "score"
-        assert!(recovered[1].json.get("score").is_none());
+        assert!(!recovered[1].json.contains_key("score"));
         assert_eq!(
             recovered[1].json.get("name"),
             Some(&GenericValue::String("Bob".into()))
@@ -670,12 +670,12 @@ mod tests {
             recovered[0].json.get("a"),
             Some(&GenericValue::Integer(1))
         );
-        assert!(recovered[0].json.get("b").is_none());
+        assert!(!recovered[0].json.contains_key("b"));
         // Second item has "b" but not "a" (null).
         assert_eq!(
             recovered[1].json.get("b"),
             Some(&GenericValue::String("hello".into()))
         );
-        assert!(recovered[1].json.get("a").is_none());
+        assert!(!recovered[1].json.contains_key("a"));
     }
 }

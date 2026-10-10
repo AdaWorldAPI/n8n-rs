@@ -6,7 +6,9 @@ use std::collections::HashMap;
 /// Generic value type that can hold any JSON-compatible value.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(untagged)]
+#[derive(Default)]
 pub enum GenericValue {
+    #[default]
     Null,
     Bool(bool),
     Integer(i64),
@@ -16,11 +18,6 @@ pub enum GenericValue {
     Object(DataObject),
 }
 
-impl Default for GenericValue {
-    fn default() -> Self {
-        GenericValue::Null
-    }
-}
 
 impl From<bool> for GenericValue {
     fn from(v: bool) -> Self {

@@ -23,11 +23,7 @@ pub fn infer_node_execution_data_schema(items: &[NodeExecutionData]) -> Schema {
             // Only update if we haven't seen a concrete type yet (i.e. the key is
             // absent or was previously Null).
             let current = key_types.get(key);
-            let needs_update = match current {
-                None => true,
-                Some(DataType::Null) => true,
-                _ => false,
-            };
+            let needs_update = matches!(current, None | Some(DataType::Null));
             if needs_update {
                 let dt = generic_value_to_data_type(value);
                 key_types.insert(key.clone(), dt);

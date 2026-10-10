@@ -140,8 +140,8 @@ impl CompiledWorkflow {
                 }
             };
 
-            for (conn_type, by_index) in node_conns {
-                for (_output_index, connections) in by_index.iter().enumerate() {
+            for by_index in node_conns.values() {
+                for connections in by_index.iter() {
                     for conn in connections {
                         let target_idx = match name_to_idx.get(&conn.node) {
                             Some(&idx) => idx,
@@ -367,7 +367,7 @@ fn extract_static_params(params: &NodeParameters) -> NodeParameters {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use n8n_workflow::{WorkflowBuilder, Node, Connection};
+    use n8n_workflow::{WorkflowBuilder, Node};
 
     #[test]
     fn test_compile_simple_workflow() {

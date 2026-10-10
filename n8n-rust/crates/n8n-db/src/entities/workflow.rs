@@ -206,6 +206,7 @@ pub struct SharedWorkflow {
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, sqlx::Type)]
 #[sqlx(type_name = "varchar", rename_all = "snake_case")]
 #[serde(rename_all = "camelCase")]
+#[derive(Default)]
 pub enum WorkflowSharingRole {
     #[sqlx(rename = "workflow:owner")]
     #[serde(rename = "workflow:owner")]
@@ -215,14 +216,10 @@ pub enum WorkflowSharingRole {
     Editor,
     #[sqlx(rename = "workflow:viewer")]
     #[serde(rename = "workflow:viewer")]
+    #[default]
     Viewer,
 }
 
-impl Default for WorkflowSharingRole {
-    fn default() -> Self {
-        Self::Viewer
-    }
-}
 
 /// WorkflowTagMapping - junction table for workflow-tag relationships.
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]

@@ -27,9 +27,10 @@
 //! `ChessSelfPlayWorkflow::validate()` that permits this single back-edge.
 
 use n8n_workflow::{
-    connection::CONNECTION_MAIN,
     Node, NodeParameterValue, Workflow, WorkflowBuilder, WorkflowSettings,
 };
+#[cfg(test)]
+use n8n_workflow::connection::CONNECTION_MAIN;
 
 // ============================================================================
 // Node Type Constants

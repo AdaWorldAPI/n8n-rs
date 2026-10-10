@@ -88,6 +88,12 @@ pub struct McpToolRegistry {
     tools: HashMap<String, McpToolDefinition>,
 }
 
+impl Default for McpToolRegistry {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl McpToolRegistry {
     /// Create a new empty registry.
     pub fn new() -> Self {

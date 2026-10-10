@@ -21,6 +21,9 @@ use tokio::sync::mpsc;
 use tracing::{debug, error, info, warn};
 
 /// Event emitted during workflow execution.
+// `Finished { result: Run }` is much larger than the other variants; boxing it
+// would change the public event API, so the size difference is accepted.
+#[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone)]
 pub enum ExecutionEvent {
     Started {
@@ -592,7 +595,7 @@ impl WorkflowEngine {
 
     /// Check whether any parameter value contains an expression (`{{ }}`).
     fn params_contain_expression(params: &HashMap<String, NodeParameterValue>) -> bool {
-        params.values().any(|v| Self::value_contains_expression(v))
+        params.values().any(Self::value_contains_expression)
     }
 
     fn value_contains_expression(value: &NodeParameterValue) -> bool {

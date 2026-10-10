@@ -28,6 +28,8 @@ pub enum ContentFormat {
 }
 
 impl ContentFormat {
+    // Infallible (falls back to a default), so deliberately not FromStr.
+    #[allow(clippy::should_implement_trait)]
     pub fn from_str(s: &str) -> Self {
         match s.to_lowercase().as_str() {
             "json" => Self::Json,
@@ -105,6 +107,8 @@ pub enum Transport {
 }
 
 impl Transport {
+    // Infallible (falls back to a default), so deliberately not FromStr.
+    #[allow(clippy::should_implement_trait)]
     pub fn from_str(s: &str) -> Self {
         match s.to_lowercase().as_str() {
             "rest" | "http" => Self::Rest,
@@ -463,19 +467,17 @@ impl FormatNegotiator {
         }
 
         // Columnar data
-        if hints.columnar.unwrap_or(false) {
-            if matches!(format, ContentFormat::ArrowIpc | ContentFormat::ArrowFlight) {
+        if hints.columnar.unwrap_or(false)
+            && matches!(format, ContentFormat::ArrowIpc | ContentFormat::ArrowFlight) {
                 score += 20.0;
             }
-        }
 
         // Record count
         if let Some(count) = hints.record_count {
-            if count > self.config.streaming_threshold_records {
-                if format.supports_streaming() {
+            if count > self.config.streaming_threshold_records
+                && format.supports_streaming() {
                     score += 15.0;
                 }
-            }
         }
 
         // Format efficiency

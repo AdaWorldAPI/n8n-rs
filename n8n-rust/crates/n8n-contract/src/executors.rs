@@ -60,13 +60,11 @@ impl NodeExecutor for CrewAgentExecutor {
         step.input = input_envelope.data.clone();
 
         // Merge node parameters into step input
-        if let Some(role) = node.get_parameter("role") {
-            if let n8n_workflow::NodeParameterValue::String(s) = role {
-                step.input = serde_json::json!({
-                    "items": input_envelope.data,
-                    "role": s,
-                });
-            }
+        if let Some(n8n_workflow::NodeParameterValue::String(s)) = node.get_parameter("role") {
+            step.input = serde_json::json!({
+                "items": input_envelope.data,
+                "role": s,
+            });
         }
 
         debug!(node = %node.name, "Delegating to crewai-rust");

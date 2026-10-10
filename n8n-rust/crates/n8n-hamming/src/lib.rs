@@ -20,10 +20,10 @@ pub use vector::*;
 pub const VECTOR_BITS: usize = 10_000;
 
 /// Size of Hamming vectors in bytes (1,250 bytes = 10,000 bits).
-pub const VECTOR_BYTES: usize = VECTOR_BITS / 8 + if VECTOR_BITS % 8 != 0 { 1 } else { 0 };
+pub const VECTOR_BYTES: usize = VECTOR_BITS / 8 + if !VECTOR_BITS.is_multiple_of(8) { 1 } else { 0 };
 
 /// Number of u64 words needed to store the vector (157 words, with last partial).
-pub const VECTOR_WORDS: usize = VECTOR_BYTES / 8 + if VECTOR_BYTES % 8 != 0 { 1 } else { 0 };
+pub const VECTOR_WORDS: usize = VECTOR_BYTES / 8 + if !VECTOR_BYTES.is_multiple_of(8) { 1 } else { 0 };
 
 #[cfg(test)]
 mod tests {
