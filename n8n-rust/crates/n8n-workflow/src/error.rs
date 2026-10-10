@@ -39,6 +39,7 @@ pub enum WorkflowError {
 
 /// Error context for node execution.
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Default)]
 pub struct ExecutionErrorContext {
     pub node_name: Option<String>,
     pub item_index: Option<usize>,
@@ -47,17 +48,6 @@ pub struct ExecutionErrorContext {
     pub cause: Option<String>,
 }
 
-impl Default for ExecutionErrorContext {
-    fn default() -> Self {
-        Self {
-            node_name: None,
-            item_index: None,
-            run_index: None,
-            description: None,
-            cause: None,
-        }
-    }
-}
 
 /// Execution error with full context.
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]

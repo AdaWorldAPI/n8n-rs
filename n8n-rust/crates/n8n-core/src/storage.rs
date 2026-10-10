@@ -8,6 +8,7 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 
 /// Trait for workflow storage backends.
+#[allow(clippy::double_must_use)] // async_trait adds #[must_use] to boxed futures
 #[async_trait]
 pub trait WorkflowStorage: Send + Sync {
     /// Get a workflow by ID.
@@ -24,6 +25,7 @@ pub trait WorkflowStorage: Send + Sync {
 }
 
 /// Trait for execution storage backends.
+#[allow(clippy::double_must_use)] // async_trait adds #[must_use] to boxed futures
 #[async_trait]
 pub trait ExecutionStorage: Send + Sync {
     /// Get an execution by ID.

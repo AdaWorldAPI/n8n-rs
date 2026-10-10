@@ -66,6 +66,9 @@ where
 }
 
 /// Trait for implementing workflow data as a Flight service.
+// `#[async_trait]` adds `#[must_use]` to methods that return a boxed future,
+// which is already must_use; clippy::double_must_use flags the generated code.
+#[allow(clippy::double_must_use)]
 #[async_trait]
 pub trait WorkflowFlightService: Send + Sync {
     /// Get execution data as RecordBatches.

@@ -83,20 +83,17 @@ pub struct SharedCredentials {
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, sqlx::Type)]
 #[sqlx(type_name = "varchar", rename_all = "snake_case")]
 #[serde(rename_all = "camelCase")]
+#[derive(Default)]
 pub enum CredentialSharingRole {
     #[sqlx(rename = "credential:owner")]
     #[serde(rename = "credential:owner")]
     Owner,
     #[sqlx(rename = "credential:user")]
     #[serde(rename = "credential:user")]
+    #[default]
     User,
 }
 
-impl Default for CredentialSharingRole {
-    fn default() -> Self {
-        Self::User
-    }
-}
 
 /// Insert parameters for creating credentials.
 #[derive(Debug, Clone)]

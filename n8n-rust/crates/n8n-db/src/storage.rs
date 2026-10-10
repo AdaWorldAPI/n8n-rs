@@ -335,7 +335,7 @@ impl ExecutionStorage for SqlxExecutionStorage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use n8n_workflow::{Run, RunExecutionData, WorkflowExecuteMode};
+    use n8n_workflow::{RunExecutionData, WorkflowExecuteMode};
 
     #[test]
     fn test_entity_to_workflow_roundtrip() {

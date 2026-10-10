@@ -11,6 +11,7 @@ use std::sync::Arc;
 pub type NodeOutput = Vec<Vec<NodeExecutionData>>;
 
 /// Trait for executing nodes.
+#[allow(clippy::double_must_use)] // async_trait adds #[must_use] to boxed futures
 #[async_trait]
 pub trait NodeExecutor: Send + Sync {
     /// Get the node type this executor handles.
@@ -758,7 +759,7 @@ impl NodeExecutor for HttpRequestExecutor {
         let mut output = Vec::new();
         let cancel_token = context.cancellation_token();
 
-        for (_idx, _item) in items.iter().enumerate() {
+        for _item in items.iter() {
             // Check for cancellation before each request
             if context.is_canceled() {
                 return Err(ExecutionEngineError::Canceled);
@@ -816,14 +817,13 @@ impl NodeExecutor for HttpRequestExecutor {
                 .unwrap_or(true);
 
             let status = response.status();
-            if !should_error_on_status && status.is_client_error() || status.is_server_error() {
-                if !should_error_on_status {
+            if (!should_error_on_status && status.is_client_error() || status.is_server_error())
+                && !should_error_on_status {
                     return Err(ExecutionEngineError::NodeExecution {
                         node: node.name.clone(),
                         message: format!("HTTP request returned status {}", status.as_u16()),
                     });
                 }
-            }
 
             // Process the response
             let result = Self::process_response(node, response).await?;
